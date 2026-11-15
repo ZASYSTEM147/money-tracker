@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZA Money Tracker</title>
+<style>
+:root{--blue:#2563eb;--blue-dark:#1d4ed8;--blue-light:#eff6ff;--ink:#172554;--muted:#64748b;--line:#dbeafe;--bg:#f4f8ff;--card:#fff;--green:#059669;--red:#dc2626;--shadow:0 8px 24px rgba(30,64,175,.07)}
+body.dark{--blue:#60a5fa;--blue-dark:#3b82f6;--blue-light:#172b4d;--ink:#e5efff;--muted:#9aacc8;--line:#263c5e;--bg:#0b1424;--card:#111f33;--green:#34d399;--red:#f87171;--shadow:0 8px 24px rgba(0,0,0,.2)}
+body.dark header{background:linear-gradient(120deg,#0b1b38,#123a75 65%,#1d4f91)}
+body.dark .nav,body.dark .secondary{background:#14243b;color:#cfe1ff;border-color:#304968}
+body.dark .nav.active{background:#2563eb;color:white;border-color:#2563eb}
+body.dark input,body.dark select,body.dark textarea{background:#0d1a2c;color:#e5efff;border-color:#304968}
+body.dark #editor{background:#14243b}\nbody.dark .card[style*="linear-gradient"]{background:linear-gradient(135deg,#142947,#111f33)!important;border-color:#304968!important}\nbody.dark .card[style*="linear-gradient"] .metric-label,body.dark .card[style*="linear-gradient"] .small{color:#a9c4e8!important}\nbody.dark .card[style*="linear-gradient"] .metric{color:#93c5fd!important}
+body.dark .bar{background:#243854}
+body.dark th,body.dark td{border-color:#263c5e}
+body.dark .tag{background:#1b3558;color:#bfdbfe}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:linear-gradient(120deg,#1e40af,#2563eb 65%,#60a5fa);color:#fff;padding:26px max(20px,calc((100% - 1100px)/2));box-shadow:var(--shadow)}
+header .eyebrow{font-size:11px;letter-spacing:.15em;opacity:.8;font-weight:700}header h1{margin:4px 0;font-size:27px}header p{margin:0;color:#dbeafe;font-size:13px}
+main{max-width:1100px;margin:22px auto;padding:0 18px 45px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.date{font-size:13px;color:var(--muted)}
+nav{display:flex;gap:8px;overflow:auto;padding:3px 0 14px;margin-bottom:8px;scrollbar-width:thin}
+button{cursor:pointer;font:inherit}.nav{white-space:nowrap;border:1px solid var(--line);border-radius:10px;padding:9px 14px;background:#fff;color:#1e40af;font-size:13px;font-weight:650}.nav.active{background:var(--blue);border-color:var(--blue);color:white}
+.btn{border:0;border-radius:10px;padding:10px 15px;background:var(--blue);color:white;font-weight:700;font-size:13px;box-shadow:0 3px 9px #2563eb25}.btn:hover{background:var(--blue-dark)}.secondary{border:1px solid #bfdbfe;border-radius:10px;padding:9px 13px;background:#fff;color:#1e40af;font-size:13px;font-weight:650}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px;box-shadow:var(--shadow);margin-bottom:13px}.metric-label{font-size:12px;color:var(--muted)}.metric{font-size:24px;font-weight:800;letter-spacing:-.04em;margin-top:3px}.positive{color:var(--green)}.negative{color:var(--red)}.muted{color:var(--muted)}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:7px 0 13px}.section-head h2{font-size:18px;margin:0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}.bar{height:9px;background:#eaf1ff;border-radius:20px;overflow:hidden}.bar>div{height:100%;background:linear-gradient(90deg,#2563eb,#60a5fa);border-radius:20px}
+label{display:block;font-size:12px;color:#475569;font-weight:650;margin:10px 0 5px}input,select,textarea{width:100%;padding:10px 11px;border:1px solid #cbdcf8;border-radius:9px;background:#fff;color:#172554;font:inherit;font-size:14px;outline:none}input:focus,select:focus,textarea:focus{border-color:#3b82f6;box-shadow:0 0 0 3px #dbeafe}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.hidden{display:none!important}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #e8effb}th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.table-wrap{overflow:auto}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #edf2fc}.item:last-child{border:0}.item-title{font-weight:700}.small{font-size:12px;color:var(--muted)}.tag{display:inline-block;padding:3px 8px;background:var(--blue-light);color:#1d4ed8;border-radius:30px;font-size:11px;font-weight:700}
+.text-action{border:0;background:none;color:#2563eb;text-decoration:underline;font-size:12px;padding:4px}
+#editor{border:2px solid #bfdbfe;background:#fafdff}.editor-head{display:flex;justify-content:space-between;align-items:center}
+footer{text-align:center;color:#94a3b8;font-size:11px;margin-top:25px}
+@media(max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:0 12px 35px}.metric{font-size:21px}header{padding:22px 18px}}
+/* Phone-first app layout */
+@media(max-width:600px){
+ body{font-size:14px}
+ header{padding:17px 16px 19px}
+ header h1{font-size:23px}
+ main{padding:0 11px calc(100px + env(safe-area-inset-bottom))}
+ .topbar{margin:12px 1px}
+ nav#nav{position:fixed;z-index:50;left:0;right:0;bottom:0;margin:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid #dbeafe;box-shadow:0 -6px 24px rgba(30,64,175,.10);backdrop-filter:blur(14px);gap:6px;overflow-x:auto;overscroll-behavior-x:contain}
+ body.dark nav#nav{background:rgba(12,24,42,.97);border-color:#263c5e;box-shadow:0 -6px 24px rgba(0,0,0,.25)}
+ .nav{flex:0 0 auto;min-height:44px;padding:9px 12px;font-size:12px}
+ .card{padding:13px;border-radius:13px}
+ .metric{font-size:20px}
+ .grid{gap:8px}
+ .actions .btn,.actions .secondary{min-height:43px;flex:1 1 42%}
+ .section-head{align-items:flex-start}
+ .section-head .btn{min-height:42px}
+ input,select,textarea{min-height:43px;font-size:16px}
+ .text-action{min-height:38px;padding:7px}
+ table{min-width:470px}
+ .form-grid{gap:8px}
+ #editor{scroll-margin-top:12px}
+ footer{padding-bottom:8px}
+}
+@media(max-width:370px){.grid{grid-template-columns:1fr 1fr}.metric{font-size:18px}.nav{padding:8px 10px}}
+@media(max-width:430px){.form-grid{grid-template-columns:1fr}.card{padding:14px}}
+
+/* ZA Money Tracker — modern visual refresh */
+:root{
+ --blue:#315fe8;--blue-dark:#234bd0;--blue-light:#edf2ff;
+ --ink:#17213b;--muted:#71809b;--line:#e4eaf5;--bg:#f5f7fc;
+ --card:#ffffff;--green:#078b68;--red:#df5264;
+ --shadow:0 10px 30px rgba(25,48,99,.065);
+}
+body{background:radial-gradient(ellipse at 10% 0%,rgba(70,117,245,.10),transparent 34%),var(--bg);color:var(--ink);letter-spacing:-.01em}
+header{position:relative;overflow:hidden;background:linear-gradient(118deg,#172c70 0%,#315fe8 58%,#7298ff 100%);padding-top:30px;padding-bottom:30px}
+header:after{content:"";position:absolute;width:260px;height:260px;border:1px solid rgba(255,255,255,.14);border-radius:50%;right:-75px;top:-135px;box-shadow:0 0 0 28px rgba(255,255,255,.045),0 0 0 58px rgba(255,255,255,.035)}
+header h1{font-size:clamp(25px,4vw,32px);font-weight:800;letter-spacing:-.045em}
+header p{font-size:13px;opacity:.9}
+main{max-width:1120px;margin:26px auto}
+.topbar{margin-bottom:18px}
+.date{font-weight:550}
+.card{border:1px solid rgba(220,229,244,.95);border-radius:20px;padding:20px;box-shadow:0 8px 26px rgba(24,47,92,.055);transition:transform .18s ease,box-shadow .18s ease}
+.card:hover{box-shadow:0 13px 32px rgba(24,47,92,.085)}
+.grid{gap:14px}
+.metric-label{font-size:11px;font-weight:750;letter-spacing:.055em;text-transform:uppercase}
+.metric{font-size:27px;letter-spacing:-.055em}
+.section-head{margin:12px 0 16px}
+.section-head h2{font-size:20px;font-weight:800;letter-spacing:-.035em}
+h2,h3{letter-spacing:-.03em}
+.nav{border:1px solid transparent;border-radius:13px;padding:10px 15px;background:#fff;color:#566581;font-weight:700;box-shadow:0 2px 7px rgba(25,48,99,.035);transition:all .18s ease}
+.nav.active{background:linear-gradient(135deg,#315fe8,#527cff);box-shadow:0 5px 14px rgba(49,95,232,.22);color:#fff}
+.btn,.secondary{border-radius:13px;min-height:42px;font-weight:750;transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+.btn{background:linear-gradient(135deg,#315fe8,#527cff);box-shadow:0 6px 14px rgba(49,95,232,.18)}
+.btn:hover{background:linear-gradient(135deg,#234bd0,#426cf0);transform:translateY(-1px)}
+.secondary{background:#fff;color:#315fe8;border:1px solid #dce5f5}
+.secondary:hover{background:#f2f5ff}
+button:active{transform:scale(.98)}
+input,select,textarea{border:1px solid #dce4f2;border-radius:12px;padding:12px 13px;background:#fbfcff;color:var(--ink);transition:border .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:#6b8df5;box-shadow:0 0 0 4px rgba(70,111,240,.12)}
+label{color:#53627d;font-size:12px;font-weight:750}
+.item{border-bottom-color:#edf1f8;padding:13px 0}
+.tag{padding:5px 10px;background:#edf2ff;color:#315fe8;border-radius:9px;font-size:11px}
+.bar{height:10px;background:#edf1f8}
+.bar>div{background:linear-gradient(90deg,#315fe8,#7ba0ff)}
+#editor{border:1px solid #cddaff;background:linear-gradient(145deg,#f8faff,#fff)}
+table{font-size:13px}
+th{font-size:10px;letter-spacing:.09em}
+td{padding:13px 9px}
+.text-action{color:#315fe8;font-weight:700;text-decoration:none}
+.text-action:hover{text-decoration:underline}
+footer{font-size:12px}
+body.dark{--blue:#7c9cff;--blue-dark:#527cff;--blue-light:#1c2d50;--ink:#edf2ff;--muted:#9eacc5;--line:#293957;--bg:#0a1222;--card:#111d31;--shadow:0 10px 30px rgba(0,0,0,.24)}
+body.dark{background:radial-gradient(ellipse at 10% 0%,rgba(49,95,232,.16),transparent 35%),var(--bg)}
+body.dark .card{border-color:#263753}
+body.dark .nav{background:#14213a;color:#bac8e2}
+body.dark .nav.active{background:linear-gradient(135deg,#315fe8,#527cff);color:#fff}
+body.dark .secondary{background:#172640;color:#cbd8f4;border-color:#304565}
+body.dark input,body.dark select,body.dark textarea{background:#0d192c;border-color:#30415f;color:#edf2ff}
+body.dark #editor{background:#13223b;border-color:#304b78}
+body.dark .item{border-color:#263650}
+body.dark .tag{background:#1d3154;color:#c5d6ff}
+@media(max-width:760px){
+ main{margin:17px auto}
+ .card{border-radius:17px;padding:16px}
+ .metric{font-size:23px}
+}
+@media(max-width:600px){
+ header{padding:19px 16px 22px}
+ header h1{font-size:25px}
+ main{padding:0 12px calc(104px + env(safe-area-inset-bottom))}
+ .topbar{margin:13px 2px 16px}
+ nav#nav{background:rgba(250,252,255,.92);border-top:1px solid rgba(222,230,244,.9);box-shadow:0 -8px 28px rgba(25,48,99,.10);padding:9px 9px calc(9px + env(safe-area-inset-bottom));gap:7px}
+ body.dark nav#nav{background:rgba(12,22,39,.94);border-color:#263753}
+ .nav{border-radius:12px;min-height:45px;padding:10px 13px}
+ .card{padding:15px;border-radius:17px;margin-bottom:12px}
+ .section-head h2{font-size:18px}
+ .actions{gap:9px}
+ .actions .btn,.actions .secondary{border-radius:13px}
+}
+
+
+#paymentMethodModal:not(.hidden){display:flex!important}\n.payment-dialog label{margin-top:13px}.payment-dialog input,.payment-dialog select{background:var(--bg)}
+
+/* Navigation alignment refinement */
+nav#nav{align-items:stretch;justify-content:flex-start;flex-wrap:wrap;row-gap:8px}
+nav#nav .nav{display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.15}
+@media(max-width:600px){
+ nav#nav{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  padding:9px 10px calc(9px + env(safe-area-inset-bottom));
+  overflow:visible;
+  align-items:stretch;
+ }
+ nav#nav .nav{
+  min-width:0;
+  width:100%;
+  min-height:48px;
+  height:48px;
+  padding:6px 3px;
+  border-radius:11px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  font-size:11px;
+  line-height:1.12;
+  flex:none;
+ }
+}
+@media(max-width:360px){
+ nav#nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding-left:7px;padding-right:7px}
+ nav#nav .nav{font-size:10px;padding:5px 2px}
+}
+
+
+/* Keep Hijri day, month and year together on one line */
+.hijri-date-single-line{white-space:nowrap!important;display:block;width:100%;font-variant-numeric:tabular-nums;overflow:visible}
+@media(max-width:600px){.hijri-date-single-line{font-size:clamp(13px,3.5vw,18px)!important;letter-spacing:-.045em}}
+
+
+#accountStatus{font-size:11px}
+#googleSignIn{border-color:#9db5f4;color:var(--blue);font-weight:750}
+body.dark #googleSignIn{color:#bcd0ff;border-color:#405987}
+\n</style>
+</head>
+<body>
+<header><div class="eyebrow">PERSONAL FINANCE</div><h1>ZA Money Tracker</h1><p>Track your money. Understand your spending. Stay in control.</p></header>
+<main>
+ <div class="topbar"><div><div class="date" id="today"></div><div id="accountStatus" class="small muted" style="margin-top:5px">Cloud sync: signed out</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="secondary" id="googleSignIn" type="button">Sign in with Google</button><button class="secondary hidden" id="googleSignOut" type="button">Sign out</button><button class="secondary" id="themeToggle" type="button">☾ Dark mode</button><button class="secondary" id="export" type="button">↓ Export CSV</button></div></div>
+ <div class="grid two" style="margin-bottom:13px">
+  <div class="card" style="margin:0;background:linear-gradient(135deg,#eaf2ff,#fff);border-color:#bfdbfe"><div class="metric-label" style="color:#31578f">DIGITAL CLOCK · BRUNEI</div><div id="digitalClock" class="metric" style="font-size:30px;color:#1d4ed8;font-variant-numeric:tabular-nums">--:--:--</div><div id="clockDate" class="small" style="color:#47658f"></div></div>
+  <div class="card" style="margin:0;background:linear-gradient(135deg,#eaf2ff,#fff);border-color:#bfdbfe"><div class="metric-label" style="color:#31578f">HIJRI / MUSLIM CALENDAR</div><div id="hijriDate" class="metric hijri-date-single-line" style="font-size:clamp(14px,2.1vw,21px);color:#1d4ed8;white-space:nowrap;letter-spacing:-.035em;line-height:1.25">Loading…</div><div id="hijriNote" class="small" style="color:#47658f">Islamic calendar date · Brunei time</div></div>
+ </div>
+ <nav id="nav">
+  <button class="nav active" data-page="dashboard">Overview</button><button class="nav" data-page="expenses">Expenses</button><button class="nav" data-page="income">Income</button><button class="nav" data-page="debts">Debts</button><button class="nav" data-page="subs">Subscriptions</button><button class="nav" data-page="categories">Categories</button><button class="nav" data-page="reports">Reports</button><button class="nav" data-page="settings">Settings</button>
+ </nav>
+ <section id="dashboard">
+  <div class="grid">
+   <div class="card"><div class="metric-label">Total income</div><div id="dIncome" class="metric positive">BND 0.00</div></div>
+   <div class="card"><div class="metric-label">Total expenses</div><div id="dExpense" class="metric negative">BND 0.00</div></div>
+   <div class="card"><div class="metric-label">Net cash flow</div><div id="dBalance" class="metric">BND 0.00</div></div>
+   <div class="card"><div class="metric-label">Net debt position</div><div id="dDebt" class="metric">BND 0.00</div><div class="small">You owe minus owed to you</div></div>
+  </div>
+  <div class="actions"><button class="btn" data-add="expense">＋ Add expense</button><button class="btn" data-add="income">＋ Add income</button><button class="secondary" data-add="debt">＋ Add debt</button><button class="secondary" data-add="sub">＋ Add subscription</button></div>
+  <div class="card"><div class="section-head"><h2>Monthly spending</h2><span class="tag" id="monthLabel"></span></div><div id="monthSpend" class="metric">BND 0.00</div><div class="bar" style="margin:12px 0"><div id="spendBar" style="width:0%"></div></div><div class="small" id="spendNote">Your monthly expense overview</div></div>
+  <div class="card"><h2 style="font-size:16px;margin:0 0 8px">Recent transactions</h2><div id="recent" class="small">No transactions yet.</div></div>
+  <div class="card"><h2 style="font-size:16px;margin:0 0 8px">Upcoming subscriptions</h2><div id="upcoming" class="small">No active subscriptions.</div></div>
+ </section>
+ <section id="expenses" class="hidden"><div class="section-head"><h2>Expenses</h2><button class="btn" data-add="expense">＋ Add expense</button></div><div class="card"><div class="metric-label">Total recorded expenses</div><div id="expenseTotal" class="metric negative"></div></div><div class="card table-wrap"><table><thead><tr><th>Date</th><th>Details</th><th>Amount</th><th></th></tr></thead><tbody id="expenseRows"></tbody></table></div></section>
+ <section id="income" class="hidden"><div class="section-head"><h2>Income</h2><button class="btn" data-add="income">＋ Add income</button></div><div class="card"><div class="metric-label">Total recorded income</div><div id="incomeTotal" class="metric positive"></div></div><div class="card table-wrap"><table><thead><tr><th>Date</th><th>Details</th><th>Amount</th><th></th></tr></thead><tbody id="incomeRows"></tbody></table></div></section>
+ <section id="debts" class="hidden"><div class="section-head"><h2>Debts & People</h2><button class="btn" data-add="debt">＋ Add debt</button></div><div class="grid two"><div class="card"><div class="metric-label">People owe you</div><div id="owed" class="metric positive"></div></div><div class="card"><div class="metric-label">You owe people</div><div id="owing" class="metric negative"></div></div></div><div id="debtRows"></div><div class="card"><div class="section-head"><h2>Debt payments made today</h2><span class="tag" id="todayPaymentCount">0 payments</span></div><div id="todayDebtPayments" class="small muted">No debt payments recorded today.</div></div><div class="card"><h2>Payment history</h2><div id="debtPaymentHistory" class="small muted">No repayments recorded yet.</div></div></section>
+ <section id="subs" class="hidden"><div class="section-head"><h2>Monthly Subscriptions</h2><button class="btn" data-add="sub">＋ Add subscription</button></div><div class="card"><div class="metric-label">Monthly recurring cost (estimated)</div><div id="subTotal" class="metric"></div></div><div id="subRows"></div></section>
+ <section id="categories" class="hidden"><div class="section-head"><h2>Manage Categories</h2></div><div class="card"><label>Category name</label><input id="catName" placeholder="e.g. Groceries"><label>Type</label><select id="catType"><option value="expense">Expense</option><option value="income">Income</option></select><button class="btn" id="addCat" style="margin-top:12px;width:100%">Add category</button></div><div class="card"><h3 style="font-size:15px;margin:0 0 10px">Your categories</h3><div id="catRows"></div></div></section>
+ <section id="reports" class="hidden"><h2 style="font-size:18px">Financial Reports</h2><div class="card"><label>Report month</label><input id="reportMonth" type="month"><div class="grid two" style="margin-top:15px"><div><div class="metric-label">Income</div><div id="rIncome" class="metric positive"></div></div><div><div class="metric-label">Expenses</div><div id="rExpense" class="metric negative"></div></div></div><hr style="border:0;border-top:1px solid var(--line);margin:15px 0"><div class="metric-label">Net savings</div><div id="rNet" class="metric"></div></div><div class="card"><div class="section-head"><h3 style="font-size:16px;margin:0">Yearly spending</h3><select id="yearReport" style="width:auto;min-width:112px"></select></div><div class="grid two" style="margin:8px 0 14px"><div><div class="metric-label">Total spent this year</div><div id="yearExpenseTotal" class="metric negative">BND 0.00</div></div><div><div class="metric-label">Monthly average</div><div id="yearExpenseAverage" class="metric">BND 0.00</div></div></div><div id="yearlySpendingChart" style="width:100%;overflow:hidden"></div><div class="small muted" style="margin-top:8px">Monthly expense totals for the selected calendar year.</div></div><div class="card"><h3 style="font-size:15px;margin:0 0 12px">Income vs expenses · Last 6 months</h3><div id="monthlyTrend" style="width:100%;overflow:hidden"></div><div class="small muted">Monthly totals based on recorded income and expenses.</div></div><div class="card"><h3 style="font-size:15px;margin:0 0 12px">Debt repayment progress</h3><div id="debtChart"></div></div><div class="card"><h3 style="font-size:15px;margin:0 0 12px">Expenses by category</h3><div id="categoryReport"></div></div><div class="card"><h3 style="font-size:15px;margin:0 0 6px">Data backup</h3><p class="small">Download a JSON backup to keep your finance records safe or restore a previous backup.</p><button id="backup" class="secondary">Download backup</button> <button id="restoreBtn" class="secondary">Restore backup</button><input id="restoreFile" type="file" accept=".json" class="hidden"></div></section>
+ <section id="settings" class="hidden">
+  <div class="section-head"><h2>Settings</h2></div>
+  <div class="card">
+   <div class="section-head"><h3 style="margin:0">Muslim / Hijri date adjustment</h3></div>
+   <p class="small muted">Adjust the displayed Hijri date to match the official Brunei moon-sighting calendar. Choose an offset if the displayed date differs from your local observation.</p>
+   <label for="hijriAdjustment">Date adjustment</label>
+   <select id="hijriAdjustment">
+    <option value="-2">2 days earlier (−2)</option>
+    <option value="-1">1 day earlier (−1)</option>
+    <option value="0">No adjustment (0)</option>
+    <option value="1">1 day later (+1)</option>
+    <option value="2">2 days later (+2)</option>
+   </select>
+   <div id="hijriAdjustmentStatus" class="small muted" style="margin-top:12px">Current adjustment: 0 days</div>
+  </div>
+ </section>
+ <section id="editor" class="card hidden">
+  <div class="editor-head"><h2 id="editorTitle" style="font-size:17px;margin:0">Add record</h2><button id="closeEditor" class="secondary">Close ✕</button></div>
+  <form id="recordForm">
+   <input type="hidden" id="recordType">
+   <div id="sharedFields"><label id="descLabel">Description / source</label><input id="desc" required placeholder="What is this for?"><div class="form-grid"><div><label>Amount (BND)</label><input id="amount" type="number" min=".01" step=".01" required placeholder="0.00"></div><div><label>Date</label><input id="date" type="date" required></div></div></div>
+   <div id="commonFields"><div id="paymentMethodField"><label>Payment method</label><select id="paymentMethod"><option value="Cash">Cash</option><option value="Card">Card</option><option value="Bank Transfer">Bank Transfer</option></select></div><div id="categoryField"><label>Category</label><select id="category"></select></div><div id="noteField"><label>Notes (optional)</label><textarea id="notes" rows="2"></textarea></div></div>
+   <div id="debtFields" class="hidden"><label>Person's name</label><input id="person" required placeholder="Name"><label>Direction</label><select id="direction"><option value="owed">They owe me</option><option value="owing">I owe them</option></select><label>Payment method</label><select id="debtPaymentMethod"><option value="Cash">Cash</option><option value="Card">Card</option><option value="Bank Transfer">Bank Transfer</option></select><label>Due date (optional)</label><input id="dueDate" type="date"></div>
+   <div id="subFields" class="hidden"><label>Billing frequency</label><select id="frequency"><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="weekly">Weekly</option></select><label>Next billing date</label><input id="nextDate" type="date"><label>Payment method</label><select id="subPaymentMethod"><option value="Cash">Cash</option><option value="Card">Card</option><option value="Bank Transfer">Bank Transfer</option></select><label>Status</label><select id="subStatus"><option value="active">Active</option><option value="cancelled">Cancelled</option></select></div>
+   <button class="btn" type="submit" style="width:100%;margin-top:16px">Save record</button>
+  </form>
+ </section>
+ <div id="paymentMethodModal" class="hidden" style="position:fixed;inset:0;z-index:1000;background:rgba(8,16,34,.68);backdrop-filter:blur(9px);align-items:center;justify-content:center;padding:18px">
+  <div class="card payment-dialog" style="width:min(100%,420px);margin:0;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.28)">
+   <div style="display:flex;align-items:center;gap:12px;margin-bottom:7px"><div style="width:42px;height:42px;border-radius:14px;background:var(--blue-light);display:grid;place-items:center;color:var(--blue);font-size:21px">↗</div><div><h2 style="margin:0;font-size:20px">Record repayment</h2><div class="small">Enter the payment details below</div></div></div>
+   <div class="payment-outstanding" id="repaymentOutstanding" style="margin:17px 0;padding:13px 15px;border-radius:14px;background:var(--blue-light)"><div class="small">Outstanding balance</div><b id="repaymentOutstandingValue" style="font-size:20px;color:var(--blue)"></b></div>
+   <label for="repaymentAmount">Amount paid (BND)</label><input id="repaymentAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00">
+   <label for="repaymentDate">Payment date</label><input id="repaymentDate" type="text" inputmode="text" placeholder="15 November 2026" autocomplete="off">
+   <label for="repaymentMethodSelect">Payment method</label><select id="repaymentMethodSelect"><option value="Cash">Cash</option><option value="Card">Card</option><option value="Bank Transfer">Bank Transfer</option></select>
+   <div id="repaymentError" class="small" style="color:var(--red);min-height:18px;margin-top:7px"></div>
+   <div style="display:flex;justify-content:flex-end;gap:9px;margin-top:12px"><button type="button" class="secondary" id="cancelPaymentMethod">Cancel</button><button type="button" class="btn" id="confirmPaymentMethod">Save repayment</button></div>
+  </div>
+ </div>
+ <footer>ZA Money Tracker · Sign in with Google to sync your private data across devices. Export backups regularly.</footer>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDFFzkBtxXvooK-U_2HAH6mEKYKFeoxmWQ",
+  authDomain: "money-tracker-110db.firebaseapp.com",
+  projectId: "money-tracker-110db",
+  storageBucket: "money-tracker-110db.firebasestorage.app",
+  messagingSenderId: "22875864233",
+  appId: "1:22875864233:web:a589039f6e78ec43673db8",
+  measurementId: "G-BYEWSTLCTX"
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
+
+(()=>{
+const $=id=>document.getElementById(id),today=()=>{let parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Brunei',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),v={};parts.forEach(p=>v[p.type]=p.value);return v.year+'-'+v.month+'-'+v.day},money=n=>'BND '+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const formatDate=iso=>{if(!iso)return '';let [y,m,d]=iso.split('-').map(Number);return d+' '+new Date(y,m-1,d).toLocaleString('en-GB',{month:'long'})+' '+y};
+const parseLongDate=value=>{let v=value.trim(),iso=v.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(iso){let y=Number(iso[1]),m=Number(iso[2]),d=Number(iso[3]),dt=new Date(y,m-1,d);return m>=1&&m<=12&&dt.getFullYear()===y&&dt.getMonth()===m-1&&dt.getDate()===d?v:null}let m=v.match(/^(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})$/i);if(!m)return null;let months=['january','february','march','april','may','june','july','august','september','october','november','december'],month=months.indexOf(m[2].toLowerCase()),day=Number(m[1]),year=Number(m[3]);if(month<0)return null;let dt=new Date(year,month,day);if(dt.getFullYear()!==year||dt.getMonth()!==month||dt.getDate()!==day)return null;return year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0')}
+let data={records:[],debts:[],subs:[],cats:[['Food','expense'],['Transport','expense'],['Groceries','expense'],['Shopping','expense'],['Bills','expense'],['Health','expense'],['Entertainment','expense'],['Education','expense'],['Other','expense'],['Salary','income'],['Business','income'],['Freelance','income'],['Investment','income'],['Other income','income']].map((x,i)=>({id:'c'+i,name:x[0],type:x[1]}))};
+try{let s=localStorage.getItem('moneyManagerDataV1');if(s)data={...data,...JSON.parse(s)}}catch(e){}
+let cloudUser=null,cloudReady=false,cloudWriteQueue=Promise.resolve();
+const accountStatus=msg=>{let el=$('accountStatus');if(el)el.textContent=msg};
+const save=()=>{
+ try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){alert('Could not save locally. Please export a backup.')}
+ if(cloudUser&&cloudReady){
+  const uid=cloudUser.uid, snapshot=JSON.parse(JSON.stringify(data));
+  cloudWriteQueue=cloudWriteQueue.then(()=>setDoc(doc(db,'users',uid,'privateData','main'),{...snapshot,updatedAt:serverTimestamp()},{merge:false}))
+   .then(()=>accountStatus('Synced to cloud · '+(cloudUser.email||'Google account')))
+   .catch(err=>{console.error('Cloud save failed',err);accountStatus('Cloud sync error · '+err.message)});
+ }
+};
+const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),catName=id=>data.cats.find(c=>c.id===id)?.name||'Uncategorised';
+function show(page){document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hidden',s.id!==page&&s.id!=='editor'));document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('editor').classList.add('hidden');render()}
+document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>show(b.dataset.page));
+function tableRows(items){return items.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<tr><td>${esc(x.date)}</td><td><b>${esc(x.desc)}</b><div class="small">${esc(catName(x.cat))}${x.paymentMethod?' · '+esc(x.paymentMethod):''}</div></td><td>${money(x.amount)}</td><td><button class="text-action" data-del-record="${esc(x.id)}">Delete</button></td></tr>`).join('')||'<tr><td colspan="4" class="muted">No records yet.</td></tr>'}
+function report(){
+ let m=$('reportMonth').value||today().slice(0,7),rs=data.records.filter(x=>x.date.startsWith(m)),inc=sum(rs.filter(x=>x.type==='income')),exp=sum(rs.filter(x=>x.type==='expense'));
+ $('rIncome').textContent=money(inc);$('rExpense').textContent=money(exp);$('rNet').textContent=money(inc-exp);
+ let groups=data.cats.filter(c=>c.type==='expense').map(c=>({name:c.name,amount:sum(rs.filter(x=>x.type==='expense'&&x.cat===c.id))})).filter(x=>x.amount>0).sort((a,b)=>b.amount-a.amount);
+ $('categoryReport').innerHTML=groups.map(g=>`<div style="margin:12px 0"><div class="item"><span>${esc(g.name)}</span><b>${money(g.amount)}</b></div><div class="bar"><div style="width:${Math.min(100,g.amount/Math.max(exp,1)*100)}%"></div></div></div>`).join('')||'<span class="muted">No expense data for this month.</span>';
+ let selectedYear=$('yearReport').value||String(Number(today().slice(0,4)));
+ let yearOptions=[...new Set([String(Number(today().slice(0,4))),...data.records.map(x=>x.date.slice(0,4)).filter(y=>/^\d{4}$/.test(y))])].sort((a,b)=>b-a);
+ $('yearReport').innerHTML=yearOptions.map(y=>`<option value="${y}">${y}</option>`).join('');
+ $('yearReport').value=yearOptions.includes(selectedYear)?selectedYear:yearOptions[0];
+ selectedYear=$('yearReport').value;
+ let yearlyMonths=Array.from({length:12},(_,i)=>{let key=selectedYear+'-'+String(i+1).padStart(2,'0'),amount=sum(data.records.filter(x=>x.type==='expense'&&x.date.startsWith(key)));return {label:new Date(Number(selectedYear),i,1).toLocaleDateString('en-GB',{month:'short'}),amount}});
+ let yearTotal=sum(yearlyMonths.map(x=>({amount:x.amount})));
+ $('yearExpenseTotal').textContent=money(yearTotal);
+ $('yearExpenseAverage').textContent=money(yearTotal/12);
+ let yearMax=Math.max(1,...yearlyMonths.map(x=>x.amount));
+ $('yearlySpendingChart').innerHTML=`<div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-items:end;height:180px">${yearlyMonths.map(x=>`<div style="height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0"><div title="${x.label}: ${money(x.amount)}" style="height:145px;width:100%;display:flex;align-items:flex-end;justify-content:center"><div style="width:62%;height:${x.amount?Math.max(3,x.amount/yearMax*100):0}%;background:linear-gradient(180deg,#7196ff,#315fe8);border-radius:6px 6px 2px 2px"></div></div><div class="small" style="margin-top:6px">${x.label}</div></div>`).join('')}</div>`;
+ let months=[];let base=new Date(Number(m.slice(0,4)),Number(m.slice(5,7))-1,1);
+ for(let k=5;k>=0;k--){let d=new Date(base.getFullYear(),base.getMonth()-k,1),key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),rec=data.records.filter(x=>x.date.startsWith(key));months.push({label:d.toLocaleDateString('en-GB',{month:'short'}),income:sum(rec.filter(x=>x.type==='income')),expense:sum(rec.filter(x=>x.type==='expense'))})}
+ let max=Math.max(1,...months.flatMap(x=>[x.income,x.expense]));
+ $('monthlyTrend').innerHTML=`<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;font-size:12px"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#2387d9;margin-right:5px"></i>Income</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#ed8a56;margin-right:5px"></i>Expenses</span></div><div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:end;height:155px">${months.map(x=>`<div style="height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0"><div style="height:125px;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px"><div title="Income ${money(x.income)}" style="width:38%;height:${Math.max(x.income?3:0,x.income/max*100)}%;background:#2387d9;border-radius:4px 4px 0 0"></div><div title="Expenses ${money(x.expense)}" style="width:38%;height:${Math.max(x.expense?3:0,x.expense/max*100)}%;background:#ed8a56;border-radius:4px 4px 0 0"></div></div><div class="small" style="margin-top:7px">${x.label}</div></div>`).join('')}</div>`;
+ let debtTotal=sum(data.debts.map(x=>({amount:x.amount}))),debtPaid=sum(data.debts.map(x=>({amount:x.paid||0}))),debtRemain=Math.max(0,debtTotal-debtPaid),pct=debtTotal?Math.min(100,debtPaid/debtTotal*100):0;
+ $('debtChart').innerHTML=debtTotal?`<div class="item"><span>Repaid</span><b>${money(debtPaid)}</b></div><div class="bar" style="height:12px;margin:10px 0"><div style="width:${pct}%"></div></div><div class="item"><span>Remaining</span><b>${money(debtRemain)}</b></div><div class="small muted">${pct.toFixed(1)}% of recorded debt repaid</div>`:'<span class="muted">Add debts and record repayments to see progress.</span>';
+}
+function render(){
+ let expenses=data.records.filter(x=>x.type==='expense'),incomes=data.records.filter(x=>x.type==='income'),month=today().slice(0,7),mi=sum(incomes.filter(x=>x.date.startsWith(month))),me=sum(expenses.filter(x=>x.date.startsWith(month)));
+ let owed=sum(data.debts.filter(x=>x.direction==='owed').map(x=>({amount:Math.max(0,x.amount-x.paid)}))),owing=sum(data.debts.filter(x=>x.direction==='owing').map(x=>({amount:Math.max(0,x.amount-x.paid)})));
+ $('dIncome').textContent=money(sum(incomes));$('dExpense').textContent=money(sum(expenses));$('dBalance').textContent=money(sum(incomes)-sum(expenses));$('dDebt').textContent=money(owing-owed);$('monthSpend').textContent=money(me);$('monthLabel').textContent=new Date().toLocaleDateString(undefined,{month:'long',year:'numeric'});$('spendBar').style.width=Math.min(100,me/Math.max(mi,me,1)*100)+'%';$('spendNote').textContent=money(mi-me)+' net cash flow this month';
+ $('recent').innerHTML=data.records.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(x=>`<div class="item"><div><b>${esc(x.desc)}</b><div class="small">${esc(x.date)} · ${esc(catName(x.cat))}</div></div><b class="${x.type==='income'?'positive':'negative'}">${x.type==='income'?'+':'−'}${money(x.amount)}</b></div>`).join('')||'<span class="muted">No transactions yet.</span>';
+ $('upcoming').innerHTML=data.subs.filter(x=>x.status==='active').sort((a,b)=>(a.nextDate||'').localeCompare(b.nextDate||'')).slice(0,5).map(x=>`<div class="item"><span><b>${esc(x.desc)}</b><div class="small">Next: ${esc(x.nextDate||'Not set')}</div></span><b>${money(x.amount)}</b></div>`).join('')||'<span class="muted">No active subscriptions.</span>';
+ $('expenseTotal').textContent=money(sum(expenses));$('incomeTotal').textContent=money(sum(incomes));$('expenseRows').innerHTML=tableRows(expenses);$('incomeRows').innerHTML=tableRows(incomes);$('owed').textContent=money(owed);$('owing').textContent=money(owing);
+ data.debts.forEach(d=>{if(!Array.isArray(d.payments))d.payments=[]});
+ $('debtRows').innerHTML=data.debts.map(x=>`<div class="card"><div class="item"><div><b>${esc(x.person)}</b><div class="small">${x.direction==='owed'?'Owes you':'You owe'} · ${x.dueDate?'Due '+esc(x.dueDate):'No due date'}</div></div><b>${money(Math.max(0,x.amount-x.paid))}</b></div><div class="small">Original ${money(x.amount)} · Paid ${money(x.paid)} · Method: ${esc(x.paymentMethod||'Cash')}</div>${x.payments.length?'<div class="small" style="margin:8px 0"><b>Recent payments</b>'+x.payments.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3).map(q=>`<div class="item"><span>${formatDate(q.date)} · ${esc(q.paymentMethod||x.paymentMethod||'Cash')}</span><b>${money(q.amount)}</b></div>`).join('')+'</div>':''}<button class="text-action" data-pay-debt="${esc(x.id)}">＋ Record repayment</button><button class="text-action" data-del-debt="${esc(x.id)}">Delete</button></div>`).join('')||'<div class="card muted">No debts recorded.</div>';
+ let allDebtPayments=data.debts.flatMap(d=>(d.payments||[]).map(q=>({...q,person:d.person,direction:d.direction}))).sort((a,b)=>b.date.localeCompare(a.date));
+ let todayPayments=allDebtPayments.filter(q=>q.date===today());
+ $('todayPaymentCount').textContent=todayPayments.length+' payment'+(todayPayments.length===1?'':'s');
+ $('todayDebtPayments').innerHTML=todayPayments.map(q=>`<div class="item"><span><b>${esc(q.person)}</b><div class="small">${q.direction==='owing'?'You paid':'They paid you'} · ${esc(q.date)}</div></span><b>${money(q.amount)}</b></div>`).join('')||'No debt payments recorded today.';
+ $('debtPaymentHistory').innerHTML=allDebtPayments.map(q=>`<div class="item"><span><b>${esc(q.person)}</b><div class="small">${formatDate(q.date)} · ${q.direction==='owing'?'You paid':'They paid you'}${q.paymentMethod?' · '+esc(q.paymentMethod):''}</div></span><b>${money(q.amount)}</b></div>`).join('')||'No repayments recorded yet.';
+ let monthly=x=>x.frequency==='yearly'?x.amount/12:x.frequency==='weekly'?x.amount*52/12:x.amount;$('subTotal').textContent=money(sum(data.subs.filter(x=>x.status==='active').map(x=>({amount:monthly(x)}))));
+ data.subs.forEach(x=>{if(!Array.isArray(x.payments))x.payments=[]});
+ let currentSubMonth=today().slice(0,7);
+ $('subRows').innerHTML=data.subs.map(x=>{let thisMonthPayment=x.payments.find(q=>q.month===currentSubMonth);return `<div class="card"><div class="item"><div><b>${esc(x.desc)}</b><div class="small">${esc(x.frequency)} · Next: ${esc(x.nextDate||'Not set')}</div></div><b>${money(x.amount)}</b></div><div class="item"><span class="tag">${esc(x.status)}</span><span>${thisMonthPayment?'<span class="tag" style="background:#e6f7ee;color:#18794e">Paid this month</span>':'<span class="tag">Not paid this month</span>'}</span></div>${thisMonthPayment?`<div class="small">Paid ${money(thisMonthPayment.amount)} on ${formatDate(thisMonthPayment.date)} · ${esc(thisMonthPayment.paymentMethod||x.paymentMethod||'Cash')}</div>`:`<button class="btn" style="width:100%;margin:12px 0" data-pay-sub="${esc(x.id)}" ${x.status!=='active'?'disabled':''}>✓ Pay this month</button>`}${x.payments.length?`<div class="small" style="margin:8px 0"><b>Payment history</b>${x.payments.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3).map(q=>`<div class="item"><span>${formatDate(q.date)} · ${esc(q.paymentMethod||x.paymentMethod||'Cash')}</span><b>${money(q.amount)}</b></div>`).join('')}</div>`:''}<div class="item"><span></span><span><button class="text-action" data-toggle-sub="${esc(x.id)}">${x.status==='active'?'Cancel':'Reactivate'}</button><button class="text-action" data-del-sub="${esc(x.id)}">Delete</button></span></div></div>`}).join('')||'<div class="card muted">No subscriptions yet.</div>';
+ $('catRows').innerHTML=data.cats.map(c=>`<div class="item"><span><b>${esc(c.name)}</b> <span class="tag">${c.type}</span></span><span><button class="text-action" data-edit-cat="${esc(c.id)}">Edit</button><button class="text-action" data-del-cat="${esc(c.id)}">Delete</button></span></div>`).join('');report();
+}
+function openEditor(type){$('recordForm').reset();$('recordType').value=type;$('date').value=today();$('editorTitle').textContent={expense:'Add Expense',income:'Add Income',debt:'Add Debt',sub:'Add Subscription'}[type];$('commonFields').classList.toggle('hidden',type==='debt'||type==='sub');$('paymentMethodField').classList.toggle('hidden',type!=='expense');$('debtFields').classList.toggle('hidden',type!=='debt');$('subFields').classList.toggle('hidden',type!=='sub');$('descLabel').textContent=type==='debt'?'Debt description (optional)':type==='sub'?'Subscription name':'Description / source';$('desc').required=type!=='debt';$('date').required=type==='expense'||type==='income';$('person').required=type==='debt';$('amount').required=true;$('categoryField').classList.toggle('hidden',type==='debt'||type==='sub');$('noteField').classList.toggle('hidden',type==='debt'||type==='sub');$('category').innerHTML=data.cats.filter(c=>c.type===type).map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');$('nextDate').value=today();$('editor').classList.remove('hidden');$('editor').scrollIntoView({behavior:'smooth',block:'start'})}
+document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>openEditor(b.dataset.add));$('closeEditor').onclick=()=>$('editor').classList.add('hidden');
+$('recordForm').onsubmit=e=>{e.preventDefault();let type=$('recordType').value,id='r'+Date.now();if(type==='sub'&&(!$('desc').value.trim()||Number($('amount').value)<=0)){alert('Please enter a subscription name and an amount greater than zero.');return}if(type==='expense'||type==='income')data.records.push({id,type,desc:$('desc').value,amount:Number($('amount').value),date:$('date').value,cat:$('category').value,notes:$('notes').value,paymentMethod:$('paymentMethod').value});if(type==='debt')data.debts.push({id,person:$('person').value,direction:$('direction').value,amount:Number($('amount').value),paid:0,dueDate:$('dueDate').value,paymentMethod:$('debtPaymentMethod').value,payments:[]});if(type==='sub')data.subs.push({id,desc:$('desc').value,amount:Number($('amount').value),frequency:$('frequency').value,nextDate:$('nextDate').value,status:$('subStatus').value,paymentMethod:$('subPaymentMethod').value,payments:[]});save();$('editor').classList.add('hidden');render()};
+$('addCat').onclick=()=>{let name=$('catName').value.trim(),type=$('catType').value;if(!name)return;if(data.cats.some(c=>c.name.toLowerCase()===name.toLowerCase()&&c.type===type)){alert('Category already exists');return}data.cats.push({id:'c'+Date.now(),name,type});$('catName').value='';save();render()};
+let paymentMethodDone=null,paymentOutstanding=0;
+function openPaymentMethodPicker(outstanding,defaultMethod,done){paymentOutstanding=outstanding;paymentMethodDone=done;$('repaymentOutstandingValue').textContent=money(outstanding);$('repaymentAmount').value='';$('repaymentAmount').max=outstanding;$('repaymentDate').value=formatDate(today());$('repaymentMethodSelect').value=['Cash','Card','Bank Transfer'].includes(defaultMethod)?defaultMethod:'Cash';$('repaymentError').textContent='';$('paymentMethodModal').classList.remove('hidden');}
+function closePaymentMethodPicker(){$('paymentMethodModal').classList.add('hidden');paymentMethodDone=null;}
+$('cancelPaymentMethod').onclick=closePaymentMethodPicker;
+$('confirmPaymentMethod').onclick=()=>{let amount=Number($('repaymentAmount').value),enteredDate=$('repaymentDate').value.trim(),date=parseLongDate(enteredDate),method=$('repaymentMethodSelect').value;if(!(amount>0)||amount>paymentOutstanding){$('repaymentError').textContent='Enter an amount up to '+money(paymentOutstanding)+'.';return}if(!date){$('repaymentError').textContent='Enter the date like 15 November 2026.';return}let done=paymentMethodDone;closePaymentMethodPicker();if(done)done({amount,date,paymentMethod:method});};
+document.addEventListener('click',e=>{let b=e.target.closest('button');if(!b)return;if(b.dataset.editCat){let c=data.cats.find(x=>x.id===b.dataset.editCat);if(c){let name=prompt('Edit category name:',c.name);if(name!==null){name=name.trim();if(!name){alert('Category name cannot be empty.')}else if(data.cats.some(x=>x.id!==c.id&&x.type===c.type&&x.name.toLowerCase()===name.toLowerCase())){alert('A category with that name already exists.')}else{c.name=name;save();render()}}}}if(b.dataset.delRecord&&confirm('Delete this transaction?'))data.records=data.records.filter(x=>x.id!==b.dataset.delRecord);if(b.dataset.delDebt&&confirm('Delete this debt?'))data.debts=data.debts.filter(x=>x.id!==b.dataset.delDebt);if(b.dataset.delSub&&confirm('Delete this subscription?'))data.subs=data.subs.filter(x=>x.id!==b.dataset.delSub);if(b.dataset.delCat&&confirm('Delete category? Existing transactions will show as uncategorised.'))data.cats=data.cats.filter(x=>x.id!==b.dataset.delCat);if(b.dataset.payDebt){let d=data.debts.find(x=>x.id===b.dataset.payDebt);if(d){if(!Array.isArray(d.payments))d.payments=[];let outstanding=Math.max(0,d.amount-d.paid);if(outstanding>0)openPaymentMethodPicker(outstanding,d.paymentMethod||'Cash',payment=>{d.paymentMethod=payment.paymentMethod;d.paid+=payment.amount;d.payments.push(payment);save();render();});}}if(b.dataset.paySub){let sub=data.subs.find(x=>x.id===b.dataset.paySub);if(sub){if(!Array.isArray(sub.payments))sub.payments=[];let month=today().slice(0,7);if(sub.status!=='active'){alert('Reactivate this subscription before recording a payment.')}else if(sub.payments.some(q=>q.month===month)){alert('This subscription is already marked as paid for this month.')}else if(confirm('Record '+money(sub.amount)+' payment for '+sub.desc+' for this month?')){let date=today(),payment={month,date,amount:Number(sub.amount),paymentMethod:sub.paymentMethod||'Cash'};sub.payments.push(payment);let billCat=data.cats.find(c=>c.type==='expense'&&c.name.toLowerCase()==='bills')||data.cats.find(c=>c.type==='expense'&&c.name.toLowerCase()==='other');data.records.push({id:'r'+Date.now(),type:'expense',desc:'Subscription: '+sub.desc,amount:Number(sub.amount),date,cat:billCat?billCat.id:'',notes:'Subscription payment for '+month,subscriptionId:sub.id,paymentMethod:payment.paymentMethod});}}}if(b.dataset.toggleSub){let s=data.subs.find(x=>x.id===b.dataset.toggleSub);s.status=s.status==='active'?'cancelled':'active'}save();render()});
+function download(name,content,type){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+$('backup').onclick=()=>download('money-manager-backup.json',JSON.stringify(data,null,2),'application/json');$('restoreBtn').onclick=()=>$('restoreFile').click();$('restoreFile').onchange=async e=>{try{let p=JSON.parse(await e.target.files[0].text());if(!Array.isArray(p.records)||!Array.isArray(p.cats)||!Array.isArray(p.debts)||!Array.isArray(p.subs))throw Error();if(confirm('Replace all current data with this backup?')){data=p;save();render()}}catch(err){alert('Invalid backup file')}e.target.value=''};
+$('export').onclick=()=>{let all=[...data.records.map(x=>({type:x.type,date:x.date,description:x.desc,amount:x.amount,category:catName(x.cat),paymentMethod:x.paymentMethod||''})),...data.debts.map(x=>({type:'debt',date:'',description:x.person+' ('+x.direction+')',amount:x.amount-x.paid,category:'Debt'})),...data.subs.map(x=>({type:'subscription',date:x.nextDate,description:x.desc,amount:x.amount,category:x.frequency})),...data.subs.flatMap(x=>(x.payments||[]).map(q=>({type:'subscription payment',date:q.date,description:x.desc,amount:q.amount,category:'Subscription · '+x.frequency,paymentMethod:q.paymentMethod||x.paymentMethod||''}))),...data.debts.flatMap(d=>(d.payments||[]).map(q=>({type:'debt payment',date:q.date,description:d.person+' ('+d.direction+')',amount:q.amount,category:'Debt repayment',paymentMethod:q.paymentMethod||d.paymentMethod||''})))],cols=['type','date','description','amount','category'];download('money-manager.csv',[cols.join(','),...all.map(x=>cols.map(k=>'"'+String(x[k]??'').replace(/"/g,'""')+'"').join(','))].join('\n'),'text/csv;charset=utf-8')};
+$('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+// Persist the user's light/dark preference.
+const applyTheme=dark=>{document.body.classList.toggle('dark',dark);$('themeToggle').textContent=dark?'☀ Light mode':'☾ Dark mode';$('themeToggle').setAttribute('aria-pressed',String(dark));try{localStorage.setItem('moneyManagerTheme',dark?'dark':'light')}catch(e){}};
+let savedTheme='light';try{savedTheme=localStorage.getItem('moneyManagerTheme')||'light'}catch(e){}applyTheme(savedTheme==='dark');
+$('themeToggle').addEventListener('click',()=>applyTheme(!document.body.classList.contains('dark')));
+// Live 24-hour digital clock in Brunei time (UTC+8).
+const updateClock=()=>{const now=new Date();$('digitalClock').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Brunei',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(now);$('clockDate').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Brunei',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);try{let adjustment=0;try{adjustment=Number(localStorage.getItem('zaHijriAdjustment')||0)}catch(e){}const hijriNow=new Date(now.getTime()+adjustment*86400000),opts={timeZone:'Asia/Brunei',calendar:'islamic-umalqura',numberingSystem:'latn'},dateParts=new Intl.DateTimeFormat('en-GB',{...opts,day:'numeric',year:'numeric'}).formatToParts(hijriNow),monthParts=new Intl.DateTimeFormat('en-GB',{...opts,month:'numeric'}).formatToParts(hijriNow),day=dateParts.find(x=>x.type==='day')?.value,year=dateParts.find(x=>x.type==='year')?.value,monthNumber=Number(monthParts.find(x=>x.type==='month')?.value),hijriMonths=['Muharam','Safar','Rabiulawal','Rabiulakhir','Jamadilawal','Jamadilakhir','Rejab','Syaaban','Ramadan','Syawal','Zulkaedah','Zulhijjah'];if(!day||!year||monthNumber<1||monthNumber>12)throw Error('Hijri date unavailable');$('hijriDate').textContent=day+' '+hijriMonths[monthNumber-1]+' '+year+'H';$('hijriNote').textContent='Tarikh Hijrah · Brunei · Nama bulan standard Bahasa Melayu / English'}catch(e){$('hijriDate').textContent='Not supported by this browser';$('hijriNote').textContent='Try an updated Chrome, Edge or Safari browser.'}};
+updateClock();setInterval(updateClock,1000);
+let savedHijriAdjustment='0';try{savedHijriAdjustment=localStorage.getItem('zaHijriAdjustment')||'0'}catch(e){}$('hijriAdjustment').value=savedHijriAdjustment;$('hijriAdjustmentStatus').textContent='Current adjustment: '+(Number(savedHijriAdjustment)>0?'+':'')+savedHijriAdjustment+' day(s)';$('hijriAdjustment').onchange=()=>{let v=$('hijriAdjustment').value;try{localStorage.setItem('zaHijriAdjustment',v)}catch(e){}$('hijriAdjustmentStatus').textContent='Current adjustment: '+(Number(v)>0?'+':'')+v+' day(s)';updateClock();};
+$('googleSignIn').onclick=async()=>{try{await signInWithPopup(auth,googleProvider)}catch(e){accountStatus('Sign-in failed · '+e.message);alert('Google sign-in failed: '+e.message)}};
+$('googleSignOut').onclick=async()=>{try{await signOut(auth)}catch(e){alert('Sign-out failed: '+e.message)}};
+onAuthStateChanged(auth,async user=>{
+ cloudReady=false;cloudUser=user||null;
+ $('googleSignIn').classList.toggle('hidden',!!user);
+ $('googleSignOut').classList.toggle('hidden',!user);
+ if(!user){accountStatus('Cloud sync: signed out · data remains on this device');return}
+ accountStatus('Connecting cloud data…');
+ try{
+  const ref=doc(db,'users',user.uid,'privateData','main'),snap=await getDoc(ref);
+  if(snap.exists()){
+   const remote=snap.data();delete remote.updatedAt;
+   data={...data,...remote};
+   try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){}
+   cloudReady=true;render();accountStatus('Synced to cloud · '+(user.email||'Google account'));
+  }else{
+   const hasLocal=(()=>{try{return !!localStorage.getItem('moneyManagerDataV1')}catch(e){return false}})();
+   if(hasLocal&&confirm('No cloud data exists for this Google account. Upload the data currently saved in this browser to your account? Choose Cancel to start with a clean tracker.')){
+    await setDoc(ref,{...data,updatedAt:serverTimestamp()});
+   }else{
+    data={records:[],debts:[],subs:[],cats:data.cats};
+    try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){}
+    await setDoc(ref,{...data,updatedAt:serverTimestamp()});
+   }
+   cloudReady=true;render();accountStatus('Synced to cloud · '+(user.email||'Google account'));
+  }
+ }catch(e){console.error('Firebase load failed',e);accountStatus('Cloud connection failed · check Firebase setup');alert('Could not load your cloud data. Check that Google sign-in and Firestore are enabled, and that Firestore rules are installed. '+e.message)}
+});
+$('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('yearReport').onchange=report;render();
+})();
+</script>
+</body></html>
