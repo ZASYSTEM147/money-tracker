@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#00eefa">
 <meta name="description" content="ZA Money Tracker — private personal finance tracking for income, expenses, debts and subscriptions.">
-<link rel="manifest" href="manifest.webmanifest?v=15">
-<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=15">
-<link rel="apple-touch-icon" href="za-icon-192.png?v=15">
+<link rel="manifest" href="manifest.webmanifest?v=16">
+<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=16">
+<link rel="apple-touch-icon" href="za-icon-192.png?v=16">
 
 <title>ZA Money Tracker</title>
 <script>document.documentElement.classList.add("booting")</script>
@@ -410,6 +410,21 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
 .loading-card h2,.loading-percent{color:#0b347a!important}
 .loading-card p{color:#1d4f91!important}
 .loading-meter{background:rgba(11,52,122,.85)!important;border-color:rgba(255,255,255,.6)!important}
+
+/* v16: centred, interactive loading page */
+#appLoadingScreen{display:flex!important;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:20px;overflow:hidden}
+#appLoadingScreen[hidden]{display:none!important}
+.loading-card{position:relative;z-index:1;margin:0 auto!important;text-align:center;display:flex;flex-direction:column;align-items:center;width:min(92vw,380px)}
+.loading-meter{width:100%}
+.loader-rain{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.loading-logo-wrap{cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;animation:pandaFloat 3s ease-in-out infinite;transition:transform .12s ease-out}
+.loading-logo-wrap img{pointer-events:none}
+.loading-logo-wrap.squish{animation:pandaSquish .5s cubic-bezier(.3,1.6,.5,1)}
+.loading-percent{transition:transform .2s}
+.loading-percent.pulse{transform:scale(1.15)}
+#appLoadingScreen.finishing .loading-logo-wrap{animation:pandaCheer .7s ease-in-out}
+#loadingStatus{display:none!important}
+.loader-tip{margin-top:10px;font-size:12px;font-weight:700;color:#0b5aa8;opacity:.75}
 </style>
 </head>
 <body>
@@ -419,7 +434,7 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
   <div class="login-brand-column login-intro">
    <div class="panda-stage" id="pandaStage" title="Tap the panda!">
     <div class="panda-glow"></div>
-    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=15" alt="ZA Money Tracker panda logo" draggable="false">
+    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=16" alt="ZA Money Tracker panda logo" draggable="false">
     <div class="panda-hint" id="pandaHint">Tap the panda 🪙</div>
    </div>
    <div class="login-eyebrow">PERSONAL FINANCE · PRIVATE CLOUD</div>
@@ -541,7 +556,7 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
   });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=15',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
+      navigator.serviceWorker.register('./sw.js?v=16',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
     });
   }
 })();
@@ -754,15 +769,17 @@ $('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('ye
 })();
 </script>
 <section id="appLoadingScreen" aria-live="polite" aria-label="Loading ZA Money Tracker" hidden>
+ <div class="loader-rain" id="loaderRain" aria-hidden="true"></div>
  <div class="loading-card">
-  <div class="loading-logo-wrap"><img src="za-money-tracker-logo.jpg" alt="ZA Money Tracker panda logo"></div>
+  <div class="loading-logo-wrap" id="loaderPanda" title="Tap me!"><img src="za-money-tracker-logo.jpg" alt="ZA Money Tracker panda logo"></div>
   <div class="loading-kicker">ZA MONEY TRACKER</div>
   <h2>Loading your tracker</h2>
-  <p id="loadingStatus">Securely syncing your finance data…</p>
+  <p id="loadingStatus" hidden></p>
   <div class="loading-meter" id="loadingMeter" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
    <div class="loading-meter-fill" id="meterFill"><span class="meter-coin"></span></div>
   </div>
-  <div class="loading-percent"><span id="meterPct">0</span>%</div>
+  <div class="loading-percent" id="meterPctWrap"><span id="meterPct">0</span>%</div>
+  <div class="loader-tip">Tap the panda 🪙</div>
  </div>
 </section>
 <script>
@@ -775,21 +792,23 @@ $('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('ye
   function paint(){var v=Math.round(p);fill.style.width=p+'%';pct.textContent=v;bar.setAttribute('aria-valuenow',v);}
   function tick(){
     if(done)return;
-    var cap=92;p+=(cap-p)*0.045+0.08;if(p>cap)p=cap;paint();
+    var cap=(Date.now()-t0)>6000?98:92;p+=(cap-p)*0.05+0.1;if(p>cap)p=cap;paint();
   }
   function start(msg){
     clearTimeout(window.__zaFinishT);
     done=false;p=0;t0=Date.now();paint();
     if(msg&&status)status.textContent=msg;
-    el.hidden=false;el.classList.remove('leaving');
+    el.hidden=false;el.classList.remove('leaving','finishing');
     clearInterval(timer);timer=setInterval(tick,60);
   }
   function finish(){
     if(el.hidden||done)return;
+    var wait=Math.max(0,1800-(Date.now()-t0));
+    if(wait>0){if(!window.__zaFinishWait)window.__zaFinishWait=setTimeout(function(){window.__zaFinishWait=null;finish()},wait);return}
     done=true;clearInterval(timer);document.documentElement.classList.remove('booting');
-    if(status)status.textContent='All set — welcome!';
+    el.classList.add('finishing');
     var step=function(){p+=(100-p)*0.35+1;if(p>=100){p=100;paint();
-      window.__zaFinishT=setTimeout(function(){el.classList.add('leaving');setTimeout(function(){el.hidden=true;el.classList.remove('leaving');},280);},260);return;}
+      window.__zaFinishT=setTimeout(function(){el.classList.add('leaving');setTimeout(function(){el.hidden=true;el.classList.remove('leaving','finishing');},280);},260);return;}
       paint();setTimeout(step,35);};
     step();
   }
@@ -800,6 +819,21 @@ $('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('ye
   window.__zaLoaderFallback=setTimeout(function(){
     if(!document.body.classList.contains('authenticated'))finish();
   },20000);
+})();
+</script>
+<script>
+/* v16: interactive loader (panda follows pointer, tap for coins, falling money, percent pulses) */
+(function(){
+  var el=document.getElementById('appLoadingScreen'),panda=document.getElementById('loaderPanda'),rain=document.getElementById('loaderRain'),pw=document.getElementById('meterPctWrap'),pct=document.getElementById('meterPct');
+  if(!el||!panda)return;
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches,icons=['💵','🪙','💰','💴','🪙','💶'];
+  if(!reduce){var n=window.innerWidth<600?10:16;for(var i=0;i<n;i++){var d=document.createElement('span');d.className='rain-item';d.textContent=icons[i%icons.length];d.style.left=(Math.random()*100)+'%';d.style.fontSize=(16+Math.random()*16)+'px';d.style.animationDuration=(7+Math.random()*8)+'s';d.style.animationDelay=(-Math.random()*12)+'s';d.style.setProperty('--dx',((Math.random()-.5)*100)+'px');d.style.setProperty('--rot',((Math.random()-.5)*720)+'deg');rain.appendChild(d)}
+    el.addEventListener('pointermove',function(e){var r=panda.getBoundingClientRect(),dx=Math.max(-1,Math.min(1,(e.clientX-r.left-r.width/2)/(window.innerWidth/2))),dy=Math.max(-1,Math.min(1,(e.clientY-r.top-r.height/2)/(window.innerHeight/2)));panda.style.transform='perspective(600px) rotateY('+dx*16+'deg) rotateX('+(-dy*14)+'deg)'});
+    el.addEventListener('pointerleave',function(){panda.style.transform=''})}
+  function burst(count){if(reduce)return;var r=panda.getBoundingClientRect(),ox=r.left+r.width/2,oy=r.top+r.height/2;for(var i=0;i<count;i++){var b=document.createElement('span');b.className='burst';b.textContent=icons[Math.floor(Math.random()*icons.length)];b.style.left=ox+'px';b.style.top=oy+'px';document.body.appendChild(b);var a=-Math.PI/2+(Math.random()-.5)*Math.PI*1.2,dist=90+Math.random()*140,tx=Math.cos(a)*dist,ty=Math.sin(a)*dist;b.animate([{transform:'translate(-50%,-50%) scale(.4)',opacity:1},{transform:'translate(calc(-50% + '+tx+'px),calc(-50% + '+ty+'px)) scale(1.1)',opacity:1,offset:.45},{transform:'translate(calc(-50% + '+tx*1.1+'px),calc(-50% + '+(ty+200)+'px)) scale(.9)',opacity:0}],{duration:1100+Math.random()*400,easing:'cubic-bezier(.2,.7,.4,1)'}).onfinish=(function(x){return function(){x.remove()}})(b)}}
+  panda.addEventListener('click',function(){panda.classList.remove('squish');void panda.offsetWidth;panda.classList.add('squish');burst(10);if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}});
+  /* pulse the percentage at every 10% */
+  var last=0;setInterval(function(){var v=parseInt(pct.textContent,10)||0;if(Math.floor(v/10)!==Math.floor(last/10)){pw.classList.add('pulse');setTimeout(function(){pw.classList.remove('pulse')},220)}last=v},120);
 })();
 </script>
 <script>
