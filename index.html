@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b3f91">
 <meta name="description" content="ZA Money Tracker — private personal finance tracking for income, expenses, debts and subscriptions.">
-<link rel="manifest" href="manifest.webmanifest?v=7">
-<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=7">
-<link rel="apple-touch-icon" href="za-icon-192.png?v=7">
+<link rel="manifest" href="manifest.webmanifest?v=8">
+<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=8">
+<link rel="apple-touch-icon" href="za-icon-192.png?v=8">
 
 <title>ZA Money Tracker</title>
 <style>
@@ -352,16 +352,63 @@ img,svg,canvas{max-width:100%}
  .login-foot{text-align:center}
 }
 @media(max-width:640px){.login-panel{display:block;text-align:center}.login-action-title,.login-action-copy{display:none}}
+
+/* ===== v8: interactive sign-in + percentage loading meter ===== */
+.money-rain{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.login-panel{position:relative;z-index:1}
+.rain-item{position:absolute;top:-40px;font-size:22px;opacity:.0;animation:rainFall linear infinite;will-change:transform}
+@keyframes rainFall{0%{transform:translate3d(0,-40px,0) rotate(0);opacity:0}10%{opacity:.55}90%{opacity:.4}100%{transform:translate3d(var(--dx,0),110vh,0) rotate(var(--rot,360deg));opacity:0}}
+.panda-stage{position:relative;perspective:700px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;margin:0 auto 18px;width:max-content;max-width:100%}
+.panda-glow{position:absolute;inset:8% 6%;border-radius:50%;background:radial-gradient(circle,rgba(8,220,229,.5),transparent 68%);filter:blur(22px);animation:glowPulse 3.2s ease-in-out infinite;z-index:0}
+@keyframes glowPulse{0%,100%{opacity:.55;transform:scale(.94)}50%{opacity:.95;transform:scale(1.06)}}
+.panda-stage .login-logo{position:relative;z-index:1;margin:0 auto;transition:transform .12s ease-out;transform-style:preserve-3d;animation:pandaFloat 4s ease-in-out infinite}
+@keyframes pandaFloat{0%,100%{translate:0 0}50%{translate:0 -6px}}
+.panda-stage.squish .login-logo{animation:pandaSquish .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pandaSquish{0%{scale:1 1}25%{scale:1.12 .84}55%{scale:.94 1.1}100%{scale:1 1}}
+.panda-stage.cheer .login-logo{animation:pandaCheer .7s ease-in-out}
+@keyframes pandaCheer{0%,100%{rotate:0deg;translate:0 0}20%{rotate:-6deg;translate:0 -12px}45%{rotate:6deg;translate:0 -16px}70%{rotate:-3deg;translate:0 -6px}}
+.panda-hint{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);z-index:2;padding:3px 10px;border-radius:99px;background:rgba(4,17,43,.72);border:1px solid rgba(190,225,255,.25);color:#cdeeff;font-size:11px;font-weight:700;white-space:nowrap;transition:opacity .4s}
+.panda-stage.used .panda-hint{opacity:0}
+.burst{position:fixed;z-index:100001;pointer-events:none;font-size:24px;will-change:transform,opacity}
+.rot-word{display:inline-block;color:#9debf1;font-weight:800;transition:opacity .28s,transform .28s}
+.rot-word.out{opacity:0;transform:translateY(6px)}
+.login-features>div{transition:transform .2s,background .2s;border-radius:10px;padding:3px 6px;margin:-3px -6px}
+.login-features>div:hover{transform:translateX(5px);background:rgba(255,255,255,.06)}
+.login-features span{transition:transform .25s}
+.login-features>div:hover span{transform:rotate(360deg) scale(1.15)}
+#loginGoogleButton{position:relative;overflow:hidden;transition:transform .15s,box-shadow .2s}
+#loginGoogleButton:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 30px rgba(8,220,229,.28)}
+#loginGoogleButton:active:not(:disabled){transform:scale(.97)}
+.ripple{position:absolute;border-radius:50%;background:rgba(36,87,214,.28);transform:scale(0);animation:rippleOut .6s ease-out;pointer-events:none}
+@keyframes rippleOut{to{transform:scale(4);opacity:0}}
+.login-intro>*{opacity:0;transform:translateY(12px);animation:introIn .55s cubic-bezier(.2,.8,.2,1) forwards}
+.login-intro>*:nth-child(1){animation-delay:.05s}.login-intro>*:nth-child(2){animation-delay:.15s}.login-intro>*:nth-child(3){animation-delay:.25s}.login-intro>*:nth-child(4){animation-delay:.35s}
+@keyframes introIn{to{opacity:1;transform:none}}
+/* meter */
+.loading-meter{height:16px;overflow:visible;position:relative;background:rgba(4,17,43,.6)}
+.loading-meter-fill{width:0;max-width:100%;animation:meterGlow 2s linear infinite;position:relative;transition:width .08s linear;border-radius:99px;transform:none}
+.meter-coin{position:absolute;right:-9px;top:50%;width:22px;height:22px;margin-top:-11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#f5b82e 60%,#c98a0b);border:2px solid #fff6cf;box-shadow:0 2px 8px rgba(0,0,0,.35);animation:coinSpin 1s linear infinite}
+@keyframes coinSpin{0%{transform:scaleX(1)}50%{transform:scaleX(.25)}100%{transform:scaleX(1)}}
+.loading-percent{margin-top:14px;font-size:30px;font-weight:850;letter-spacing:-.04em;color:#fff;font-variant-numeric:tabular-nums}
+.loading-percent span{font-variant-numeric:tabular-nums}
+#appLoadingScreen{transition:opacity .28s}
+#appLoadingScreen.leaving{opacity:0}
+@media(prefers-reduced-motion:reduce){.rain-item,.panda-glow,.panda-stage .login-logo,.meter-coin,.login-intro>*{animation:none!important;opacity:1;transform:none}.money-rain{display:none}}
 </style>
 </head>
 <body>
 <section id="loginGate" aria-label="Sign in to ZA Money Tracker">
+ <div class="money-rain" id="moneyRain" aria-hidden="true"></div>
  <div class="login-panel">
-  <div class="login-brand-column">
-   <img class="login-logo" src="za-money-tracker-logo.jpg?v=6" alt="ZA Money Tracker panda logo">
+  <div class="login-brand-column login-intro">
+   <div class="panda-stage" id="pandaStage" title="Tap the panda!">
+    <div class="panda-glow"></div>
+    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=8" alt="ZA Money Tracker panda logo" draggable="false">
+    <div class="panda-hint" id="pandaHint">Tap the panda 🪙</div>
+   </div>
    <div class="login-eyebrow">PERSONAL FINANCE · PRIVATE CLOUD</div>
    <h1>ZA Money Tracker</h1>
-   <p class="login-lead">Your money, organised in one place.</p>
+   <p class="login-lead">Your money, organised in <span id="rotWord" class="rot-word">one place</span>.</p>
    <div class="login-features">
     <div><span>✓</span> Track income, expenses and budgets</div>
     <div><span>✓</span> Manage debts and repayments</div>
@@ -474,7 +521,7 @@ img,svg,canvas{max-width:100%}
   });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=7',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
+      navigator.serviceWorker.register('./sw.js?v=8',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
     });
   }
 })();
@@ -509,8 +556,8 @@ let data={records:[],debts:[],subs:[],cats:[['Food','expense'],['Transport','exp
 try{let s=localStorage.getItem('moneyManagerDataV1');if(s)data={...data,...JSON.parse(s)}}catch(e){}
 let cloudUser=null,cloudReady=false,cloudWriteQueue=Promise.resolve();
 const accountStatus=msg=>{let el=$('accountStatus');if(el)el.textContent=msg};
-const showAppLoading=(message='Securely syncing your finance data…')=>{const el=$('appLoadingScreen');if(el){$('loadingStatus').textContent=message;el.hidden=false}};
-const hideAppLoading=()=>{if(window.__zaLoaderFallback)clearTimeout(window.__zaLoaderFallback);const el=$('appLoadingScreen');if(el)el.hidden=true};
+const showAppLoading=(message='Securely syncing your finance data…')=>{if(window.__zaLoader)window.__zaLoader.start(message);else{const el=$('appLoadingScreen');if(el){$('loadingStatus').textContent=message;el.hidden=false}}};
+const hideAppLoading=()=>{if(window.__zaLoaderFallback)clearTimeout(window.__zaLoaderFallback);if(window.__zaLoader)window.__zaLoader.finish();else{const el=$('appLoadingScreen');if(el)el.hidden=true}};
 
 const save=()=>{
  try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){alert('Could not save locally. Please export a backup.')}
@@ -661,26 +708,133 @@ $('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('ye
   <div class="loading-kicker">ZA MONEY TRACKER</div>
   <h2>Loading your tracker</h2>
   <p id="loadingStatus">Securely syncing your finance data…</p>
-  <div class="loading-meter" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100">
-   <div class="loading-meter-fill"></div>
+  <div class="loading-meter" id="loadingMeter" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+   <div class="loading-meter-fill" id="meterFill"><span class="meter-coin"></span></div>
   </div>
-  <div class="loading-caption"><span class="loading-dot"></span> LOADING · PLEASE WAIT</div>
+  <div class="loading-percent"><span id="meterPct">0</span>%</div>
  </div>
 </section>
 <script>
-/* Show the branded meter immediately on every page load and refresh.
-   Firebase auth handling hides it once the saved session check completes. */
+/* Loading meter: starts at 0% on every load/refresh, eases toward 92%, jumps to 100% when the app is ready. */
 (function(){
-  var loader=document.getElementById('appLoadingScreen');
-  if(!loader) return;
-  loader.hidden=false;
-  var status=document.getElementById('loadingStatus');
-  if(status) status.textContent='Refreshing your secure money tracker…';
+  var el=document.getElementById('appLoadingScreen');if(!el)return;
+  var fill=document.getElementById('meterFill'),pct=document.getElementById('meterPct'),
+      bar=document.getElementById('loadingMeter'),status=document.getElementById('loadingStatus');
+  var p=0,timer=null,done=false,t0=0;
+  function paint(){var v=Math.round(p);fill.style.width=p+'%';pct.textContent=v;bar.setAttribute('aria-valuenow',v);}
+  function tick(){
+    if(done)return;
+    var cap=92;p+=(cap-p)*0.045+0.08;if(p>cap)p=cap;paint();
+  }
+  function start(msg){
+    clearTimeout(window.__zaFinishT);
+    done=false;p=0;t0=Date.now();paint();
+    if(msg&&status)status.textContent=msg;
+    el.hidden=false;el.classList.remove('leaving');
+    clearInterval(timer);timer=setInterval(tick,60);
+  }
+  function finish(){
+    if(el.hidden||done)return;
+    done=true;clearInterval(timer);
+    if(status)status.textContent='All set — welcome!';
+    var step=function(){p+=(100-p)*0.35+1;if(p>=100){p=100;paint();
+      window.__zaFinishT=setTimeout(function(){el.classList.add('leaving');setTimeout(function(){el.hidden=true;el.classList.remove('leaving');},280);},260);return;}
+      paint();setTimeout(step,35);};
+    step();
+  }
+  window.__zaLoader={start:start,finish:finish};
+  start('Refreshing your secure money tracker…');
+  /* status messages follow the real work */
+  setTimeout(function(){if(!done&&status&&p<95)status.textContent='Checking your saved sign-in…';},1400);
   window.__zaLoaderFallback=setTimeout(function(){
-    if(loader && !document.body.classList.contains('authenticated')){
-      loader.hidden=true;
-    }
+    if(!document.body.classList.contains('authenticated'))finish();
   },20000);
+})();
+</script>
+<script>
+/* ===== v8 interactive sign-in ===== */
+(function(){
+  var gate=document.getElementById('loginGate'),stage=document.getElementById('pandaStage'),
+      logo=document.getElementById('pandaLogo'),rain=document.getElementById('moneyRain'),
+      btn=document.getElementById('loginGoogleButton');
+  if(!gate||!stage)return;
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var icons=['💵','🪙','💰','💴','🪙','💶'];
+
+  /* falling money background */
+  if(!reduce){
+    var n=window.innerWidth<600?10:18;
+    for(var i=0;i<n;i++){
+      var d=document.createElement('span');d.className='rain-item';
+      d.textContent=icons[i%icons.length];
+      d.style.left=(Math.random()*100)+'%';
+      d.style.fontSize=(16+Math.random()*16)+'px';
+      d.style.animationDuration=(9+Math.random()*10)+'s';
+      d.style.animationDelay=(-Math.random()*16)+'s';
+      d.style.setProperty('--dx',((Math.random()-.5)*120)+'px');
+      d.style.setProperty('--rot',((Math.random()-.5)*720)+'deg');
+      rain.appendChild(d);
+    }
+  }
+
+  /* panda follows pointer / finger with a 3D tilt */
+  function tilt(x,y){
+    var r=stage.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+    var dx=Math.max(-1,Math.min(1,(x-cx)/(window.innerWidth/2))),
+        dy=Math.max(-1,Math.min(1,(y-cy)/(window.innerHeight/2)));
+    logo.style.transform='rotateY('+(dx*14)+'deg) rotateX('+(-dy*12)+'deg) translate('+(dx*4)+'px,'+(dy*3)+'px)';
+  }
+  if(!reduce){
+    gate.addEventListener('pointermove',function(e){tilt(e.clientX,e.clientY)});
+    gate.addEventListener('pointerleave',function(){logo.style.transform=''});
+  }
+
+  /* coin burst */
+  function burst(fromEl,count){
+    if(reduce)return;
+    var r=fromEl.getBoundingClientRect(),ox=r.left+r.width/2,oy=r.top+r.height/2;
+    for(var i=0;i<count;i++){
+      var b=document.createElement('span');b.className='burst';b.textContent=icons[Math.floor(Math.random()*icons.length)];
+      b.style.left=ox+'px';b.style.top=oy+'px';document.body.appendChild(b);
+      var ang=-Math.PI/2+(Math.random()-.5)*Math.PI*1.1,dist=90+Math.random()*150,
+          tx=Math.cos(ang)*dist,ty=Math.sin(ang)*dist,rot=(Math.random()-.5)*540;
+      b.animate([
+        {transform:'translate(-50%,-50%) scale(.4) rotate(0)',opacity:1},
+        {transform:'translate(calc(-50% + '+tx+'px),calc(-50% + '+(ty)+'px)) scale(1.1) rotate('+rot/2+'deg)',opacity:1,offset:.45},
+        {transform:'translate(calc(-50% + '+(tx*1.15)+'px),calc(-50% + '+(ty+210)+'px)) scale(.9) rotate('+rot+'deg)',opacity:0}
+      ],{duration:1100+Math.random()*500,easing:'cubic-bezier(.2,.7,.4,1)'}).onfinish=(function(el){return function(){el.remove()}})(b);
+    }
+  }
+  var taps=0,msgs=['Tap the panda 🪙','Ka-ching! 💰','Rich panda! 🐼','Save more, spend wise ✨'];
+  function pop(){
+    stage.classList.remove('squish','cheer');void stage.offsetWidth;stage.classList.add('squish');
+    burst(stage,10);taps++;
+    var h=document.getElementById('pandaHint');
+    if(taps===1)stage.classList.add('used');
+    if(navigator.vibrate)try{navigator.vibrate(18)}catch(e){}
+  }
+  stage.addEventListener('click',pop);
+
+  /* panda cheers when hovering / focusing the sign-in button */
+  if(btn){
+    var cheer=function(){stage.classList.remove('squish','cheer');void stage.offsetWidth;stage.classList.add('cheer')};
+    btn.addEventListener('pointerenter',cheer);
+    btn.addEventListener('focus',cheer);
+    btn.addEventListener('click',function(e){
+      var r=btn.getBoundingClientRect(),d=document.createElement('span'),sz=Math.max(r.width,r.height);
+      d.className='ripple';d.style.width=d.style.height=sz+'px';
+      d.style.left=(e.clientX-r.left-sz/2)+'px';d.style.top=(e.clientY-r.top-sz/2)+'px';
+      btn.appendChild(d);setTimeout(function(){d.remove()},650);
+      cheer();burst(btn,8);
+    });
+  }
+
+  /* rotating tagline */
+  var words=['one place','your pocket','real time','every device','full control'],wi=0,rw=document.getElementById('rotWord');
+  if(rw&&!reduce)setInterval(function(){
+    rw.classList.add('out');
+    setTimeout(function(){wi=(wi+1)%words.length;rw.textContent=words[wi];rw.classList.remove('out')},280);
+  },2600);
 })();
 </script>
 </body></html>
