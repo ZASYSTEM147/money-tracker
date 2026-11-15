@@ -210,6 +210,7 @@ body.authenticated #loginGate{display:none}
 #loginGoogleButton{width:100%;min-height:54px;display:flex;align-items:center;justify-content:center;gap:12px;border:0;border-radius:15px;background:#fff;color:#24324d;font-size:15px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.16)}
 #loginGoogleButton:disabled{opacity:.65;cursor:wait}
 .google-g{font-size:21px;font-weight:900;color:#4285f4}
+#loginMessage:empty{display:none}
 #loginMessage{min-height:38px;margin-top:16px;color:#c8e8f7;font-size:12px;line-height:1.5}
 .login-foot{border-top:1px solid rgba(190,209,255,.15);padding-top:17px;margin-top:8px;color:#91a5cb;font-size:10px}
 @media(max-width:480px){#loginGate{padding:16px}.login-panel{padding:29px 21px 22px;border-radius:23px}}
@@ -426,7 +427,7 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
    <p class="login-action-copy">Sign in securely with your Google account to open your personal finance dashboard.</p>
    <button id="loginGoogleButton" type="button"><span class="google-g">G</span> Continue with Google</button>
    <button id="installAppButton" type="button" hidden>＋ Install ZA Money Tracker</button>
-   <div id="loginMessage" role="status">Ready when you are. Sign in to continue.</div>
+   <div id="loginMessage" role="status"></div>
    <div class="login-help-note">If sign-in fails, confirm this website hostname is listed in Firebase Authentication → Settings → Authorized domains, and that Google is enabled as a provider.</div>
    <div class="login-foot">On Android, use the Chrome or Edge menu → Install app / Add to Home screen.</div>
    <div class="login-foot">Your financial records are stored securely in your own account.</div>
@@ -681,7 +682,7 @@ onAuthStateChanged(auth,async authUser=>{
  $('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Continue with Google';
  $('googleSignIn').classList.toggle('hidden',!!user);
  $('googleSignOut').classList.toggle('hidden',!user);
- if(!user){hideAppLoading();accountStatus('Cloud sync: signed out');$('loginMessage').textContent=redirectError?authErrorText(redirectError):'Google returned, but Firebase did not confirm the session. Check the exact website hostname under Firebase Authentication → Settings → Authorized domains, then refresh and try again.';redirectError=null;return}
+ if(!user){hideAppLoading();accountStatus('Cloud sync: signed out');$('loginMessage').textContent=redirectError?authErrorText(redirectError):'';redirectError=null;return}
  $('loginMessage').textContent='Loading your secure finance data…';
  showAppLoading('Loading your secure finance data…');
  accountStatus('Connecting cloud data…');
