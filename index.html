@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b3f91">
 <meta name="description" content="ZA Money Tracker — private personal finance tracking for income, expenses, debts and subscriptions.">
-<link rel="manifest" href="manifest.webmanifest?v=8">
-<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=8">
-<link rel="apple-touch-icon" href="za-icon-192.png?v=8">
+<link rel="manifest" href="manifest.webmanifest?v=9">
+<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=9">
+<link rel="apple-touch-icon" href="za-icon-192.png?v=9">
 
 <title>ZA Money Tracker</title>
+<script>document.documentElement.classList.add("booting")</script>
 <style>
 :root{--blue:#2457d6;--blue-dark:#173fa8;--blue-light:#e8f8ff;--ink:#172554;--muted:#64748b;--line:#dbeafe;--bg:#f4f8ff;--card:#fff;--green:#059669;--red:#dc2626;--shadow:0 8px 24px rgba(30,64,175,.07)}
 body.dark{--blue:#60a5fa;--blue-dark:#3b82f6;--blue-light:#172b4d;--ink:#e5efff;--muted:#9aacc8;--line:#263c5e;--bg:#0b1424;--card:#111f33;--green:#34d399;--red:#f87171;--shadow:0 8px 24px rgba(0,0,0,.2)}
@@ -394,6 +395,11 @@ img,svg,canvas{max-width:100%}
 #appLoadingScreen{transition:opacity .28s}
 #appLoadingScreen.leaving{opacity:0}
 @media(prefers-reduced-motion:reduce){.rain-item,.panda-glow,.panda-stage .login-logo,.meter-coin,.login-intro>*{animation:none!important;opacity:1;transform:none}.money-rain{display:none}}
+
+/* v9: on refresh show only the loading meter, never the sign-in card */
+html.booting #loginGate{display:none!important}
+html.booting body:not(.authenticated)>header,html.booting body:not(.authenticated)>main,html.booting body:not(.authenticated)>footer{display:none!important}
+.login-help-note,.login-foot{display:none!important}
 </style>
 </head>
 <body>
@@ -403,7 +409,7 @@ img,svg,canvas{max-width:100%}
   <div class="login-brand-column login-intro">
    <div class="panda-stage" id="pandaStage" title="Tap the panda!">
     <div class="panda-glow"></div>
-    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=8" alt="ZA Money Tracker panda logo" draggable="false">
+    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=9" alt="ZA Money Tracker panda logo" draggable="false">
     <div class="panda-hint" id="pandaHint">Tap the panda 🪙</div>
    </div>
    <div class="login-eyebrow">PERSONAL FINANCE · PRIVATE CLOUD</div>
@@ -521,7 +527,7 @@ img,svg,canvas{max-width:100%}
   });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=8',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
+      navigator.serviceWorker.register('./sw.js?v=9',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
     });
   }
 })();
@@ -735,7 +741,7 @@ $('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('ye
   }
   function finish(){
     if(el.hidden||done)return;
-    done=true;clearInterval(timer);
+    done=true;clearInterval(timer);document.documentElement.classList.remove('booting');
     if(status)status.textContent='All set — welcome!';
     var step=function(){p+=(100-p)*0.35+1;if(p>=100){p=100;paint();
       window.__zaFinishT=setTimeout(function(){el.classList.add('leaving');setTimeout(function(){el.hidden=true;el.classList.remove('leaving');},280);},260);return;}
