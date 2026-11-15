@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b3f91">
+<meta name="theme-color" content="#00eefa">
 <meta name="description" content="ZA Money Tracker — private personal finance tracking for income, expenses, debts and subscriptions.">
-<link rel="manifest" href="manifest.webmanifest?v=9">
-<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=9">
-<link rel="apple-touch-icon" href="za-icon-192.png?v=9">
+<link rel="manifest" href="manifest.webmanifest?v=10">
+<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=10">
+<link rel="apple-touch-icon" href="za-icon-192.png?v=10">
 
 <title>ZA Money Tracker</title>
 <script>document.documentElement.classList.add("booting")</script>
@@ -401,6 +401,15 @@ img,svg,canvas{max-width:100%}
 html.booting #loginGate{display:none!important}
 html.booting body:not(.authenticated)>header,html.booting body:not(.authenticated)>main,html.booting body:not(.authenticated)>footer{display:none!important}
 .login-help-note,.login-foot{display:none!important}
+
+/* v10: loading screen follows the logo colour (matches the installed-app splash) */
+#appLoadingScreen{background:radial-gradient(circle at 20% 15%,rgba(255,255,255,.55),transparent 42%),linear-gradient(160deg,#00eefa,#08dce5 58%,#3fb8ff)!important;color:#0b347a}
+.loading-card{background:rgba(255,255,255,.55)!important;border-color:rgba(255,255,255,.8)!important;box-shadow:0 20px 60px rgba(11,52,122,.22)!important}
+.loading-logo-wrap{background:#00eefa!important;box-shadow:0 10px 26px rgba(11,52,122,.22)!important}
+.loading-kicker{color:#0b5aa8!important}
+.loading-card h2,.loading-percent{color:#0b347a!important}
+.loading-card p{color:#1d4f91!important}
+.loading-meter{background:rgba(11,52,122,.85)!important;border-color:rgba(255,255,255,.6)!important}
 </style>
 </head>
 <body>
@@ -410,7 +419,7 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
   <div class="login-brand-column login-intro">
    <div class="panda-stage" id="pandaStage" title="Tap the panda!">
     <div class="panda-glow"></div>
-    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=9" alt="ZA Money Tracker panda logo" draggable="false">
+    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=10" alt="ZA Money Tracker panda logo" draggable="false">
     <div class="panda-hint" id="pandaHint">Tap the panda 🪙</div>
    </div>
    <div class="login-eyebrow">PERSONAL FINANCE · PRIVATE CLOUD</div>
@@ -528,7 +537,7 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
   });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=9',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
+      navigator.serviceWorker.register('./sw.js?v=10',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
     });
   }
 })();

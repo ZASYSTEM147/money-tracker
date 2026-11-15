@@ -1,4 +1,4 @@
-# ZA Money Tracker — interactive login + loading meter v8
+# ZA Money Tracker — interactive login + loading meter v10
 
 Upload every file in this package to the root of the `money-tracker` GitHub repository, replacing files with the same names.
 
@@ -7,6 +7,6 @@ Upload every file in this package to the root of the `money-tracker` GitHub repo
 - Animated tagline, hover effects on the feature list, and a ripple on the sign-in button.
 - Loading page is now a real meter: it starts at 0% on every load or refresh, climbs with a spinning coin, and reaches 100% when your data is ready.
 - Reduced-motion setting is respected (animations switch off).
-- Service worker cache upgraded to v8.
+- Service worker cache upgraded to v10.
 
 After committing, wait for GitHub Pages to deploy, then refresh once. If an installed app still shows the old screen, close it fully and reopen it while online.
