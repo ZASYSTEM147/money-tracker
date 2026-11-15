@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#00eefa">
 <meta name="description" content="ZA Money Tracker — private personal finance tracking for income, expenses, debts and subscriptions.">
-<link rel="manifest" href="manifest.webmanifest?v=16">
-<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=16">
-<link rel="apple-touch-icon" href="za-icon-192.png?v=16">
+<link rel="manifest" href="manifest.webmanifest?v=17">
+<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=17">
+<link rel="apple-touch-icon" href="za-icon-192.png?v=17">
 
 <title>ZA Money Tracker</title>
 <script>document.documentElement.classList.add("booting")</script>
@@ -434,7 +434,7 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
   <div class="login-brand-column login-intro">
    <div class="panda-stage" id="pandaStage" title="Tap the panda!">
     <div class="panda-glow"></div>
-    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=16" alt="ZA Money Tracker panda logo" draggable="false">
+    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=17" alt="ZA Money Tracker panda logo" draggable="false">
     <div class="panda-hint" id="pandaHint">Tap the panda 🪙</div>
    </div>
    <div class="login-eyebrow">PERSONAL FINANCE · PRIVATE CLOUD</div>
@@ -556,7 +556,7 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
   });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=16',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
+      navigator.serviceWorker.register('./sw.js?v=17',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
     });
   }
 })();
@@ -565,7 +565,7 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFFzkBtxXvooK-U_2HAH6mEKYKFeoxmWQ",
@@ -589,7 +589,7 @@ const formatDate=iso=>{if(!iso)return '';let [y,m,d]=iso.split('-').map(Number);
 const parseLongDate=value=>{let v=value.trim(),iso=v.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(iso){let y=Number(iso[1]),m=Number(iso[2]),d=Number(iso[3]),dt=new Date(y,m-1,d);return m>=1&&m<=12&&dt.getFullYear()===y&&dt.getMonth()===m-1&&dt.getDate()===d?v:null}let m=v.match(/^(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})$/i);if(!m)return null;let months=['january','february','march','april','may','june','july','august','september','october','november','december'],month=months.indexOf(m[2].toLowerCase()),day=Number(m[1]),year=Number(m[3]);if(month<0)return null;let dt=new Date(year,month,day);if(dt.getFullYear()!==year||dt.getMonth()!==month||dt.getDate()!==day)return null;return year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0')}
 let data={records:[],debts:[],subs:[],cats:[['Food','expense'],['Transport','expense'],['Groceries','expense'],['Shopping','expense'],['Bills','expense'],['Health','expense'],['Entertainment','expense'],['Education','expense'],['Other','expense'],['Salary','income'],['Business','income'],['Freelance','income'],['Investment','income'],['Other income','income']].map((x,i)=>({id:'c'+i,name:x[0],type:x[1]}))};
 try{let s=localStorage.getItem('moneyManagerDataV1');if(s)data={...data,...JSON.parse(s)}}catch(e){}
-let cloudUser=null,cloudReady=false,cloudWriteQueue=Promise.resolve();
+let cloudUser=null,cloudReady=false,cloudWriteQueue=Promise.resolve(),pendingCloudWrites=0,lastOwnWrite=0,unsubLive=null,liveRetry=null;
 const accountStatus=msg=>{let el=$('accountStatus');if(el)el.textContent=msg};
 const showAppLoading=(message='Securely syncing your finance data…')=>{if(window.__zaLoader)window.__zaLoader.start(message);else{const el=$('appLoadingScreen');if(el){$('loadingStatus').textContent=message;el.hidden=false}}};
 const hideAppLoading=()=>{if(window.__zaLoaderFallback)clearTimeout(window.__zaLoaderFallback);if(window.__zaLoader)window.__zaLoader.finish();else{const el=$('appLoadingScreen');if(el)el.hidden=true}};
@@ -598,7 +598,7 @@ const save=()=>{
  try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){alert('Could not save locally. Please export a backup.')}
  if(cloudUser&&cloudReady){
   const uid=cloudUser.uid, snapshot=JSON.parse(JSON.stringify(data));
-  cloudWriteQueue=cloudWriteQueue.then(()=>setDoc(doc(db,'users',uid,'privateData','main'),{...snapshot,updatedAt:serverTimestamp()},{merge:false}))
+  pendingCloudWrites++;cloudWriteQueue=cloudWriteQueue.then(()=>setDoc(doc(db,'users',uid,'privateData','main'),{...snapshot,updatedAt:serverTimestamp()},{merge:false})).then(v=>{pendingCloudWrites--;lastOwnWrite=Date.now();return v},err=>{pendingCloudWrites--;lastOwnWrite=Date.now();throw err})
    .then(()=>accountStatus('Synced to cloud · '+(cloudUser.email||'Google account')))
    .catch(err=>{console.error('Cloud save failed',err);accountStatus('Cloud sync error · '+err.message)});
  }
@@ -606,6 +606,33 @@ const save=()=>{
 const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),catName=id=>data.cats.find(c=>c.id===id)?.name||'Uncategorised';
 function show(page){document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hidden',s.id!==page&&s.id!=='editor'));document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('editor').classList.add('hidden');render()}
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>show(b.dataset.page));
+
+/* ===== v17: live sync between devices ===== */
+const stable=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((a,c)=>(a[c]=v[c],a),{}):v);
+function syncToast(msg){let t=document.getElementById('syncToast');if(!t){t=document.createElement('div');t.id='syncToast';t.style.cssText='position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(20px);z-index:100003;padding:10px 16px;border-radius:99px;background:#0b347a;color:#fff;font:700 13px/1.2 system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.3);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none';document.body.appendChild(t)}t.textContent=msg;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)'},2600)}
+function renderWhenSafe(){const a=document.activeElement;if(a&&a.matches&&a.matches('textarea[data-note-for]')){setTimeout(renderWhenSafe,3000);return}render()}
+function applyRemote(remote){
+ if(!cloudReady||!remote)return;
+ delete remote.updatedAt;
+ if(pendingCloudWrites>0||Date.now()-lastOwnWrite<1500){clearTimeout(liveRetry);liveRetry=setTimeout(refetchLive,2000);return}
+ const merged={...data,...remote};
+ if(stable(merged)===stable(data))return;
+ data=merged;
+ try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){}
+ renderWhenSafe();syncToast('🔄 Updated from another device');
+ accountStatus('Live sync · updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
+}
+async function refetchLive(){if(!cloudUser||!cloudReady)return;try{const snap=await getDoc(doc(db,'users',cloudUser.uid,'privateData','main'));if(snap.exists())applyRemote(snap.data())}catch(e){}}
+function stopLiveSync(){if(unsubLive){try{unsubLive()}catch(e){}unsubLive=null}clearTimeout(liveRetry)}
+function startLiveSync(user){
+ stopLiveSync();
+ unsubLive=onSnapshot(doc(db,'users',user.uid,'privateData','main'),snap=>{
+  if(snap.metadata.hasPendingWrites||!snap.exists())return;
+  applyRemote(snap.data());
+ },err=>{console.warn('Live sync error',err);accountStatus('Live sync paused · '+(err.code||err.message))});
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refetchLive()});
+window.addEventListener('online',()=>{refetchLive()});
 
 /* ===== v14: proof of bank transfer attachments ===== */
 function proofDB(){return new Promise((res,rej)=>{const r=indexedDB.open('zaMoneyProofs',1);r.onupgradeneeded=()=>r.result.createObjectStore('p');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
@@ -736,7 +763,7 @@ $('googleSignOut').onclick=async()=>{try{await signOut(auth)}catch(e){alert('Sig
 onAuthStateChanged(auth,async authUser=>{
  const redirectUser=await redirectResultPromise;
  const user=authUser||redirectUser||auth.currentUser;
- cloudReady=false;cloudUser=user||null;
+ stopLiveSync();cloudReady=false;cloudUser=user||null;
  document.body.classList.remove('authenticated');
  $('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Continue with Google';
  $('googleSignIn').classList.toggle('hidden',!!user);
@@ -751,7 +778,7 @@ onAuthStateChanged(auth,async authUser=>{
    const remote=snap.data();delete remote.updatedAt;
    data={...data,...remote};
    try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){}
-   cloudReady=true;render();document.body.classList.add('authenticated');hideAppLoading();$('loginMessage').textContent='Signed in successfully.';accountStatus('Synced to cloud · '+(user.email||'Google account'));
+   cloudReady=true;render();startLiveSync(user);document.body.classList.add('authenticated');hideAppLoading();$('loginMessage').textContent='Signed in successfully.';accountStatus('Live sync on · '+(user.email||'Google account'));
   }else{
    const hasLocal=(()=>{try{return !!localStorage.getItem('moneyManagerDataV1')}catch(e){return false}})();
    if(hasLocal&&confirm('No cloud data exists for this Google account. Upload the data currently saved in this browser to your account? Choose Cancel to start with a clean tracker.')){
@@ -761,7 +788,7 @@ onAuthStateChanged(auth,async authUser=>{
     try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){}
     await setDoc(ref,{...data,updatedAt:serverTimestamp()});
    }
-   cloudReady=true;render();document.body.classList.add('authenticated');hideAppLoading();$('loginMessage').textContent='Signed in successfully.';accountStatus('Synced to cloud · '+(user.email||'Google account'));
+   cloudReady=true;render();startLiveSync(user);document.body.classList.add('authenticated');hideAppLoading();$('loginMessage').textContent='Signed in successfully.';accountStatus('Synced to cloud · '+(user.email||'Google account'));
   }
  }catch(e){hideAppLoading();console.error('Firebase load failed',e);accountStatus('Cloud connection failed · check Firebase setup');$('loginMessage').textContent='Google sign-in succeeded, but your cloud data could not be opened. Check Firestore database and security rules. Details: '+(e.code||'')+' '+e.message;$('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Try again'}
 });
