@@ -1,35 +1,18 @@
-# ZA Money Tracker — Firebase setup
+# ZA Money Tracker — branded installable web app
 
-## Firebase project
-Project ID: `money-tracker-110db`
+## Publish
+Upload every file in this folder to the root of your GitHub repository and enable GitHub Pages (Settings → Pages → Deploy from branch → main → /(root)).
 
-The web app is configured in `index.html` with the Firebase web app config supplied by the project owner. Firebase web API keys are client identifiers, not service-account secrets. Keep service-account private keys out of this repository.
+## Install on Android
+Open the HTTPS GitHub Pages URL in Chrome or Microsoft Edge. Use the browser's menu and choose **Install app** or **Add to Home screen**. The app uses the supplied panda logo for its launcher icon.
 
-## 1. Enable Google sign-in
-1. Open Firebase Console → Authentication → Sign-in method.
-2. Enable **Google** and save.
-3. In Authentication → Settings → Authorized domains, add the domain where this app will be hosted (for GitHub Pages, add `YOUR-GITHUB-USERNAME.github.io`).
+The login page includes an install button when the browser exposes the install prompt.
 
-## 2. Create Firestore
-1. Open Firebase Console → Firestore Database.
-2. Create a database (production mode is recommended).
-3. Choose a region close to Brunei / Southeast Asia if available.
-4. Publish the contents of `firestore.rules` in the Firestore Rules tab.
+## iPhone
+Open the HTTPS URL in Safari → Share → Add to Home Screen. (iOS Chrome/Edge generally use the system's Add to Home Screen flow rather than Android-style PWA install prompts.)
 
-The rules restrict each signed-in user to their own document path:
-`users/{uid}/privateData/main`.
+## Firebase
+The app retains the Firebase project configuration and Google sign-in / Firestore integration. In Firebase Authentication → Settings → Authorized domains, add your GitHub Pages hostname, e.g. `yourname.github.io`. Enable Google sign-in and create Firestore; publish `firestore.rules`.
 
-## 3. Host on GitHub Pages
-1. Upload `index.html` and `firestore.rules` to the repository root.
-2. In GitHub → Settings → Pages, choose deploy from branch and select `main` / root.
-3. Add the resulting `YOUR-GITHUB-USERNAME.github.io` domain to Firebase Authentication authorized domains.
-
-## Data behaviour
-- Signed-out data stays in this browser's local storage.
-- On first sign-in, if this account has no cloud data, the app asks whether to upload the data already in this browser or start with a clean tracker.
-- After sign-in, app changes are saved to the signed-in user's Firestore document.
-- Signing out leaves the local browser cache in place. Do not use a shared/public device for sensitive financial records.
-- Export CSV / JSON backups regularly.
-
-## Important
-The Firebase web config is intended to be included in browser code. Never commit service-account JSON files, private keys, or passwords.
+## Offline note
+The service worker caches the app shell and branding assets. Google sign-in and Firestore cloud sync still require an internet connection.
