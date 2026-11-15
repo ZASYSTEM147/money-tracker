@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#00eefa">
 <meta name="description" content="ZA Money Tracker — private personal finance tracking for income, expenses, debts and subscriptions.">
-<link rel="manifest" href="manifest.webmanifest?v=17">
-<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=17">
-<link rel="apple-touch-icon" href="za-icon-192.png?v=17">
+<link rel="manifest" href="manifest.webmanifest?v=18">
+<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=18">
+<link rel="apple-touch-icon" href="za-icon-192.png?v=18">
 
 <title>ZA Money Tracker</title>
 <script>document.documentElement.classList.add("booting")</script>
@@ -434,7 +434,7 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
   <div class="login-brand-column login-intro">
    <div class="panda-stage" id="pandaStage" title="Tap the panda!">
     <div class="panda-glow"></div>
-    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=17" alt="ZA Money Tracker panda logo" draggable="false">
+    <img class="login-logo" id="pandaLogo" src="za-money-tracker-logo.jpg?v=18" alt="ZA Money Tracker panda logo" draggable="false">
     <div class="panda-hint" id="pandaHint">Tap the panda 🪙</div>
    </div>
    <div class="login-eyebrow">PERSONAL FINANCE · PRIVATE CLOUD</div>
@@ -556,7 +556,7 @@ html.booting body:not(.authenticated)>header,html.booting body:not(.authenticate
   });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=17',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
+      navigator.serviceWorker.register('./sw.js?v=18',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
     });
   }
 })();
@@ -819,9 +819,10 @@ $('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('ye
   function paint(){var v=Math.round(p);fill.style.width=p+'%';pct.textContent=v;bar.setAttribute('aria-valuenow',v);}
   function tick(){
     if(done)return;
-    var cap=(Date.now()-t0)>6000?98:92;p+=(cap-p)*0.05+0.1;if(p>cap)p=cap;paint();
+    var t=(Date.now()-t0)/1000,cap=t>6?Math.min(98,92+(t-6)*0.5):92,target=cap*(1-Math.exp(-t/1.6));if(target>p)p=target;paint();
   }
   function start(msg){
+    if(!el.hidden&&!done&&t0){if(msg&&status)status.textContent=msg;return}
     clearTimeout(window.__zaFinishT);
     done=false;p=0;t0=Date.now();paint();
     if(msg&&status)status.textContent=msg;
@@ -839,7 +840,7 @@ $('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('ye
       paint();setTimeout(step,35);};
     step();
   }
-  window.__zaLoader={start:start,finish:finish};
+  window.__zaLoader={start:start,finish:finish};document.addEventListener('visibilitychange',function(){if(!done&&!el.hidden)tick()});
   start('Refreshing your secure money tracker…');
   /* status messages follow the real work */
   setTimeout(function(){if(!done&&status&&p<95)status.textContent='Checking your saved sign-in…';},1400);
