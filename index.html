@@ -17,7 +17,10 @@ body.dark header{background:linear-gradient(120deg,#0b1b38,#123a75 65%,#1d4f91)}
 body.dark .nav,body.dark .secondary{background:#14243b;color:#cfe1ff;border-color:#304968}
 body.dark .nav.active{background:#2563eb;color:white;border-color:#2563eb}
 body.dark input,body.dark select,body.dark textarea{background:#0d1a2c;color:#e5efff;border-color:#304968}
-body.dark #editor{background:#14243b}\nbody.dark .card[style*="linear-gradient"]{background:linear-gradient(135deg,#142947,#111f33)!important;border-color:#304968!important}\nbody.dark .card[style*="linear-gradient"] .metric-label,body.dark .card[style*="linear-gradient"] .small{color:#a9c4e8!important}\nbody.dark .card[style*="linear-gradient"] .metric{color:#93c5fd!important}
+body.dark #editor{background:#14243b}
+body.dark .card[style*="linear-gradient"]{background:linear-gradient(135deg,#142947,#111f33)!important;border-color:#304968!important}
+body.dark .card[style*="linear-gradient"] .metric-label,body.dark .card[style*="linear-gradient"] .small{color:#a9c4e8!important}
+body.dark .card[style*="linear-gradient"] .metric{color:#93c5fd!important}
 body.dark .bar{background:#243854}
 body.dark th,body.dark td{border-color:#263c5e}
 body.dark .tag{background:#1b3558;color:#bfdbfe}
@@ -140,7 +143,8 @@ body.dark .tag{background:#1d3154;color:#c5d6ff}
 }
 
 
-#paymentMethodModal:not(.hidden){display:flex!important}\n.payment-dialog label{margin-top:13px}.payment-dialog input,.payment-dialog select{background:var(--bg)}
+#paymentMethodModal:not(.hidden){display:flex!important}
+.payment-dialog label{margin-top:13px}.payment-dialog input,.payment-dialog select{background:var(--bg)}
 
 /* Navigation alignment refinement */
 nav#nav{align-items:stretch;justify-content:flex-start;flex-wrap:wrap;row-gap:8px}
@@ -182,7 +186,8 @@ nav#nav .nav{display:flex;align-items:center;justify-content:center;text-align:c
 #accountStatus{font-size:11px}
 #googleSignIn{border-color:#9db5f4;color:var(--blue);font-weight:750}
 body.dark #googleSignIn{color:#bcd0ff;border-color:#405987}
-\n
+
+
 /* Full-screen authentication gate: the tracker is hidden until Google sign-in succeeds. */
 body:not(.authenticated)>header,
 body:not(.authenticated)>main,
@@ -272,6 +277,40 @@ img,svg,canvas{max-width:100%}
   .grid,.grid.two{grid-template-columns:1fr}
   .topbar>div:last-child{grid-template-columns:1fr 1fr}
   header .brand-icon{width:44px;height:44px;flex-basis:44px}
+}
+
+
+/* Mobile login viewport fix: keep the complete sign-in card reachable on phones. */
+@media(max-width:640px){
+ #loginGate{
+  position:fixed;inset:0;min-height:100vh;min-height:100dvh;
+  display:flex;align-items:flex-start;justify-content:center;
+  overflow-x:hidden;overflow-y:auto;
+  padding:calc(12px + env(safe-area-inset-top)) 12px calc(18px + env(safe-area-inset-bottom));
+  -webkit-overflow-scrolling:touch;
+ }
+ .login-panel{width:100%;max-width:440px;margin:auto;padding:20px 18px 18px;border-radius:22px}
+ .login-logo{width:min(100%,210px);max-height:140px;aspect-ratio:433/288;object-fit:cover;margin:0 auto 14px;border-radius:17px}
+ .login-eyebrow{font-size:9px;letter-spacing:.12em}
+ .login-panel h1{font-size:clamp(25px,7vw,31px);line-height:1.12;margin:9px 0 6px}
+ .login-lead{font-size:13px;line-height:1.4}
+ .login-features{gap:9px;margin:16px 0;padding:13px;font-size:12px;line-height:1.35}
+ .login-features span{width:19px;height:19px}
+ #loginGoogleButton{min-height:52px;font-size:14px}
+ #installAppButton{min-height:48px;font-size:13px}
+ #loginMessage{margin-top:12px;font-size:12px;min-height:30px}
+ .login-foot{padding-top:12px;margin-top:7px;font-size:10px}
+}
+@media(max-width:380px){
+ .login-panel{padding:17px 14px 15px}
+ .login-logo{width:min(100%,175px);max-height:116px;margin-bottom:11px}
+ .login-features{margin:12px 0;padding:11px}
+ .login-panel h1{font-size:25px}
+}
+@media(max-height:720px) and (max-width:640px){
+ .login-logo{width:150px;max-height:100px}
+ .login-features{margin:10px 0}
+ .login-panel{padding-top:14px;padding-bottom:13px}
 }
 
 </style>
@@ -397,7 +436,7 @@ img,svg,canvas{max-width:100%}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -500,21 +539,47 @@ $('themeToggle').addEventListener('click',()=>applyTheme(!document.body.classLis
 const updateClock=()=>{const now=new Date();$('digitalClock').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Brunei',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(now);$('clockDate').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Brunei',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);try{let adjustment=0;try{adjustment=Number(localStorage.getItem('zaHijriAdjustment')||0)}catch(e){}const hijriNow=new Date(now.getTime()+adjustment*86400000),opts={timeZone:'Asia/Brunei',calendar:'islamic-umalqura',numberingSystem:'latn'},dateParts=new Intl.DateTimeFormat('en-GB',{...opts,day:'numeric',year:'numeric'}).formatToParts(hijriNow),monthParts=new Intl.DateTimeFormat('en-GB',{...opts,month:'numeric'}).formatToParts(hijriNow),day=dateParts.find(x=>x.type==='day')?.value,year=dateParts.find(x=>x.type==='year')?.value,monthNumber=Number(monthParts.find(x=>x.type==='month')?.value),hijriMonths=['Muharam','Safar','Rabiulawal','Rabiulakhir','Jamadilawal','Jamadilakhir','Rejab','Syaaban','Ramadan','Syawal','Zulkaedah','Zulhijjah'];if(!day||!year||monthNumber<1||monthNumber>12)throw Error('Hijri date unavailable');$('hijriDate').textContent=day+' '+hijriMonths[monthNumber-1]+' '+year+'H';$('hijriNote').textContent='Tarikh Hijrah · Brunei · Nama bulan standard Bahasa Melayu / English'}catch(e){$('hijriDate').textContent='Not supported by this browser';$('hijriNote').textContent='Try an updated Chrome, Edge or Safari browser.'}};
 updateClock();setInterval(updateClock,1000);
 let savedHijriAdjustment='0';try{savedHijriAdjustment=localStorage.getItem('zaHijriAdjustment')||'0'}catch(e){}$('hijriAdjustment').value=savedHijriAdjustment;$('hijriAdjustmentStatus').textContent='Current adjustment: '+(Number(savedHijriAdjustment)>0?'+':'')+savedHijriAdjustment+' day(s)';$('hijriAdjustment').onchange=()=>{let v=$('hijriAdjustment').value;try{localStorage.setItem('zaHijriAdjustment',v)}catch(e){}$('hijriAdjustmentStatus').textContent='Current adjustment: '+(Number(v)>0?'+':'')+v+' day(s)';updateClock();};
+const authErrorText=e=>{
+ const code=e?.code||'';
+ if(code==='auth/unauthorized-domain')return 'This website is not authorised in Firebase. Add zasystem147.github.io under Firebase Console → Authentication → Settings → Authorised domains.';
+ if(code==='auth/operation-not-allowed')return 'Google sign-in is not enabled. Enable Google under Firebase Authentication → Sign-in method.';
+ if(code==='auth/popup-blocked'||code==='auth/popup-closed-by-user')return 'The Google sign-in window was blocked or closed. Please try again.';
+ if(code==='auth/network-request-failed')return 'Network error. Check your internet connection and try again.';
+ return 'Google sign-in failed ('+(code||'unknown error')+'): '+(e?.message||'Please try again.');
+};
+let redirectError=null;
+const redirectResultPromise=getRedirectResult(auth).catch(e=>{redirectError=e;console.error('Google redirect sign-in failed',e)});
 const doGoogleSignIn=async()=>{
- $('loginGoogleButton').disabled=true;$('loginGoogleButton').textContent='Connecting to Google…';$('loginMessage').textContent='Opening secure Google sign-in…';
- try{await signInWithPopup(auth,googleProvider)}
- catch(e){$('loginMessage').textContent='Sign-in failed: '+e.message;$('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Continue with Google'}
+ const button=$('loginGoogleButton');
+ button.disabled=true;button.textContent='Connecting to Google…';$('loginMessage').textContent='Securely connecting to Google…';
+ try{
+  googleProvider.setCustomParameters({prompt:'select_account'});
+  const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||window.matchMedia('(max-width:700px)').matches;
+  if(isMobile){
+   $('loginMessage').textContent='Redirecting to Google sign-in…';
+   await signInWithRedirect(auth,googleProvider);
+   return;
+  }
+  await signInWithPopup(auth,googleProvider);
+ }catch(e){
+  console.error('Google sign-in failed',e);
+  if(e?.code==='auth/popup-blocked'||e?.code==='auth/operation-not-supported-in-this-environment'){
+   try{$('loginMessage').textContent='Opening secure Google sign-in…';await signInWithRedirect(auth,googleProvider);return}catch(redirectErr){e=redirectErr}
+  }
+  $('loginMessage').textContent=authErrorText(e);button.disabled=false;button.innerHTML='<span class="google-g">G</span> Continue with Google';
+ }
 };
 $('loginGoogleButton').onclick=doGoogleSignIn;
 $('googleSignIn').onclick=doGoogleSignIn;
 $('googleSignOut').onclick=async()=>{try{await signOut(auth)}catch(e){alert('Sign-out failed: '+e.message)}};
 onAuthStateChanged(auth,async user=>{
+ await redirectResultPromise;
  cloudReady=false;cloudUser=user||null;
  document.body.classList.remove('authenticated');
  $('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Continue with Google';
  $('googleSignIn').classList.toggle('hidden',!!user);
  $('googleSignOut').classList.toggle('hidden',!user);
- if(!user){accountStatus('Cloud sync: signed out');$('loginMessage').textContent='Sign in with your Google account to access your private tracker.';return}
+ if(!user){accountStatus('Cloud sync: signed out');$('loginMessage').textContent=redirectError?authErrorText(redirectError):'Sign in with your Google account to access your private tracker.';redirectError=null;return}
  $('loginMessage').textContent='Loading your secure finance data…';
  accountStatus('Connecting cloud data…');
  try{
