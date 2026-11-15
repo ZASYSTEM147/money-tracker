@@ -20,3 +20,7 @@ The service worker caches the app shell and branding assets. Google sign-in and 
 ## Mobile Google sign-in troubleshooting
 On Android phones, the login button uses a full-page Google redirect instead of a popup. After choosing the Google account, the browser should return to ZA Money Tracker.
 If it returns to the login page, add the exact GitHub Pages hostname shown in the browser address bar under Firebase Console → Authentication → Settings → Authorized domains. Also ensure Google is enabled under Authentication → Sign-in method and Firestore rules are published.
+
+
+## Chrome on Android sign-in
+The app uses Firebase popup sign-in instead of redirect sign-in on GitHub Pages. This avoids the cross-site redirect helper/session-storage issue that can occur when the app is hosted on github.io and Firebase Auth uses a firebaseapp.com auth domain. If Chrome blocks the popup, allow pop-ups for zasystem147.github.io and retry.
