@@ -16,3 +16,7 @@ The app retains the Firebase project configuration and Google sign-in / Firestor
 
 ## Offline note
 The service worker caches the app shell and branding assets. Google sign-in and Firestore cloud sync still require an internet connection.
+
+## Mobile Google sign-in troubleshooting
+On Android phones, the login button uses a full-page Google redirect instead of a popup. After choosing the Google account, the browser should return to ZA Money Tracker.
+If it returns to the login page, add the exact GitHub Pages hostname shown in the browser address bar under Firebase Console → Authentication → Settings → Authorized domains. Also ensure Google is enabled under Authentication → Sign-in method and Firestore rules are published.

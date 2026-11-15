@@ -313,6 +313,27 @@ img,svg,canvas{max-width:100%}
  .login-panel{padding-top:14px;padding-bottom:13px}
 }
 
+\n.login-help-note{margin:4px auto 0;max-width:340px;color:#a9c5e8;font-size:11px;line-height:1.5}\n
+/* Branded full-screen loading view with animated progress meter */
+#appLoadingScreen{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at 18% 12%,rgba(8,220,229,.26),transparent 36%),radial-gradient(circle at 90% 88%,rgba(47,105,235,.35),transparent 38%),linear-gradient(145deg,#071a3d,#0d3474 58%,#071a3d);color:#f4fbff}
+#appLoadingScreen[hidden]{display:none!important}
+.loading-card{width:min(100%,390px);padding:30px 25px 26px;text-align:center;border:1px solid rgba(190,225,255,.24);border-radius:27px;background:linear-gradient(150deg,rgba(255,255,255,.13),rgba(255,255,255,.055));box-shadow:0 24px 80px rgba(0,0,0,.28);backdrop-filter:blur(16px)}
+.loading-logo-wrap{width:150px;height:118px;margin:0 auto 22px;border-radius:22px;overflow:hidden;background:#08dce5;box-shadow:0 12px 30px rgba(0,0,0,.2);animation:loadingBob 2.4s ease-in-out infinite}
+.loading-logo-wrap img{width:100%;height:100%;object-fit:contain;display:block}
+.loading-kicker{font-size:10px;letter-spacing:.19em;font-weight:850;color:#9ff4f4}
+.loading-card h2{margin:10px 0 7px;font-size:24px;line-height:1.2;color:#fff;letter-spacing:-.04em}
+.loading-card p{margin:0 0 24px;color:#c8e8f7;font-size:13px;line-height:1.5}
+.loading-meter{height:11px;width:100%;border-radius:99px;background:rgba(4,17,43,.55);border:1px solid rgba(190,225,255,.22);overflow:hidden;box-shadow:inset 0 2px 5px rgba(0,0,0,.2)}
+.loading-meter-fill{height:100%;width:42%;border-radius:99px;background:linear-gradient(90deg,#08dce5,#5aa4ff,#08dce5);background-size:200% 100%;animation:meterMove 1.7s ease-in-out infinite,meterGlow 2s linear infinite}
+.loading-caption{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:17px;font-size:9px;font-weight:800;letter-spacing:.16em;color:#b8d4f7}
+.loading-dot{width:7px;height:7px;border-radius:50%;background:#08dce5;box-shadow:0 0 0 5px rgba(8,220,229,.13);animation:dotPulse 1.2s ease-in-out infinite}
+@keyframes meterMove{0%{transform:translateX(-110%);width:42%}50%{transform:translateX(70%);width:55%}100%{transform:translateX(245%);width:42%}}
+@keyframes meterGlow{to{background-position:200% 0}}
+@keyframes loadingBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes dotPulse{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
+@media(max-width:480px){.loading-card{padding:27px 21px 24px;border-radius:24px}.loading-logo-wrap{width:138px;height:108px}.loading-card h2{font-size:22px}}
+@media(prefers-reduced-motion:reduce){.loading-logo-wrap,.loading-meter-fill,.loading-dot{animation:none}.loading-meter-fill{width:65%;transform:none}}
+
 </style>
 </head>
 <body>
@@ -329,7 +350,7 @@ img,svg,canvas{max-width:100%}
   </div>
   <button id="loginGoogleButton" type="button"><span class="google-g">G</span> Continue with Google</button>
   <button id="installAppButton" type="button" hidden>＋ Install ZA Money Tracker</button>
-  <div id="loginMessage" role="status">Sign in with your Google account to access your private tracker.</div>
+  <div id="loginMessage" role="status">Sign in with your Google account to access your private tracker.</div><div class="login-help-note">If Google sign-in returns here, check that this website's address is added to Firebase Authentication → Settings → Authorised domains, and that Google is enabled as a sign-in provider.</div>
   <div class="login-foot">On Android, install from Chrome or Edge using the browser menu → Install app / Add to Home screen.</div>
   <div class="login-foot">Your financial records are stored in your own account.</div>
  </div>
@@ -463,6 +484,9 @@ let data={records:[],debts:[],subs:[],cats:[['Food','expense'],['Transport','exp
 try{let s=localStorage.getItem('moneyManagerDataV1');if(s)data={...data,...JSON.parse(s)}}catch(e){}
 let cloudUser=null,cloudReady=false,cloudWriteQueue=Promise.resolve();
 const accountStatus=msg=>{let el=$('accountStatus');if(el)el.textContent=msg};
+const showAppLoading=(message='Securely syncing your finance data…')=>{const el=$('appLoadingScreen');if(el){$('loadingStatus').textContent=message;el.hidden=false}};
+const hideAppLoading=()=>{const el=$('appLoadingScreen');if(el)el.hidden=true};
+
 const save=()=>{
  try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){alert('Could not save locally. Please export a backup.')}
  if(cloudUser&&cloudReady){
@@ -543,42 +567,47 @@ updateClock();setInterval(updateClock,1000);
 let savedHijriAdjustment='0';try{savedHijriAdjustment=localStorage.getItem('zaHijriAdjustment')||'0'}catch(e){}$('hijriAdjustment').value=savedHijriAdjustment;$('hijriAdjustmentStatus').textContent='Current adjustment: '+(Number(savedHijriAdjustment)>0?'+':'')+savedHijriAdjustment+' day(s)';$('hijriAdjustment').onchange=()=>{let v=$('hijriAdjustment').value;try{localStorage.setItem('zaHijriAdjustment',v)}catch(e){}$('hijriAdjustmentStatus').textContent='Current adjustment: '+(Number(v)>0?'+':'')+v+' day(s)';updateClock();};
 const authErrorText=e=>{
  const code=e?.code||'';
- if(code==='auth/unauthorized-domain')return 'This website is not authorised in Firebase. Add zasystem147.github.io under Firebase Console → Authentication → Settings → Authorised domains.';
+ if(code==='auth/unauthorized-domain')return 'This website is not authorised in Firebase. In Firebase Console open Authentication → Settings → Authorised domains and add the exact website host shown in your Chrome address bar (for example, yourname.github.io). Then try again.';
  if(code==='auth/operation-not-allowed')return 'Google sign-in is not enabled. Enable Google under Firebase Authentication → Sign-in method.';
  if(code==='auth/popup-blocked'||code==='auth/popup-closed-by-user')return 'The Google sign-in window was blocked or closed. Please try again.';
  if(code==='auth/network-request-failed')return 'Network error. Check your internet connection and try again.';
  return 'Google sign-in failed ('+(code||'unknown error')+'): '+(e?.message||'Please try again.');
 };
 let redirectError=null;
-const redirectResultPromise=getRedirectResult(auth).catch(e=>{redirectError=e;console.error('Google redirect sign-in failed',e)});
+const redirectResultPromise=getRedirectResult(auth).then(result=>result?.user||null).catch(e=>{redirectError=e;console.error('Google redirect sign-in failed',e);return null});
 const doGoogleSignIn=async()=>{
  const button=$('loginGoogleButton');
  button.disabled=true;button.textContent='Connecting to Google…';$('loginMessage').textContent='Securely connecting to Google…';
  try{
   googleProvider.setCustomParameters({prompt:'select_account'});
-  // Popup flow works with GitHub Pages' Firebase authDomain more reliably on mobile.
-  // If the browser blocks popups, fall back to the redirect flow.
+  const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  if(isMobile){
+   $('loginMessage').textContent='Opening Google sign-in… You will return here after choosing your account.';
+   await signInWithRedirect(auth,googleProvider);
+   return;
+  }
   await signInWithPopup(auth,googleProvider);
  }catch(e){
   console.error('Google sign-in failed',e);
-  if(e?.code==='auth/popup-blocked'||e?.code==='auth/operation-not-supported-in-this-environment'){
-   try{$('loginMessage').textContent='Opening secure Google sign-in…';await signInWithRedirect(auth,googleProvider);return}catch(redirectErr){e=redirectErr}
-  }
-  $('loginMessage').textContent=authErrorText(e);button.disabled=false;button.innerHTML='<span class="google-g">G</span> Continue with Google';
+  $('loginMessage').textContent=authErrorText(e);
+  button.disabled=false;
+  button.innerHTML='<span class="google-g">G</span> Continue with Google';
  }
 };
 $('loginGoogleButton').onclick=doGoogleSignIn;
 $('googleSignIn').onclick=doGoogleSignIn;
 $('googleSignOut').onclick=async()=>{try{await signOut(auth)}catch(e){alert('Sign-out failed: '+e.message)}};
-onAuthStateChanged(auth,async user=>{
- await redirectResultPromise;
+onAuthStateChanged(auth,async authUser=>{
+ const redirectUser=await redirectResultPromise;
+ const user=authUser||redirectUser||auth.currentUser;
  cloudReady=false;cloudUser=user||null;
  document.body.classList.remove('authenticated');
  $('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Continue with Google';
  $('googleSignIn').classList.toggle('hidden',!!user);
  $('googleSignOut').classList.toggle('hidden',!user);
- if(!user){accountStatus('Cloud sync: signed out');$('loginMessage').textContent=redirectError?authErrorText(redirectError):'Google sign-in has not completed. Tap Continue with Google again. If this repeats, check Firebase authorised domains.';redirectError=null;return}
+ if(!user){hideAppLoading();accountStatus('Cloud sync: signed out');$('loginMessage').textContent=redirectError?authErrorText(redirectError):'Google returned, but Firebase did not confirm the session. Check the exact website hostname under Firebase Authentication → Settings → Authorized domains, then refresh and try again.';redirectError=null;return}
  $('loginMessage').textContent='Loading your secure finance data…';
+ showAppLoading('Loading your secure finance data…');
  accountStatus('Connecting cloud data…');
  try{
   const ref=doc(db,'users',user.uid,'privateData','main'),snap=await getDoc(ref);
@@ -586,7 +615,7 @@ onAuthStateChanged(auth,async user=>{
    const remote=snap.data();delete remote.updatedAt;
    data={...data,...remote};
    try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){}
-   cloudReady=true;render();document.body.classList.add('authenticated');$('loginMessage').textContent='Signed in successfully.';accountStatus('Synced to cloud · '+(user.email||'Google account'));
+   cloudReady=true;render();document.body.classList.add('authenticated');hideAppLoading();$('loginMessage').textContent='Signed in successfully.';accountStatus('Synced to cloud · '+(user.email||'Google account'));
   }else{
    const hasLocal=(()=>{try{return !!localStorage.getItem('moneyManagerDataV1')}catch(e){return false}})();
    if(hasLocal&&confirm('No cloud data exists for this Google account. Upload the data currently saved in this browser to your account? Choose Cancel to start with a clean tracker.')){
@@ -596,11 +625,23 @@ onAuthStateChanged(auth,async user=>{
     try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){}
     await setDoc(ref,{...data,updatedAt:serverTimestamp()});
    }
-   cloudReady=true;render();document.body.classList.add('authenticated');$('loginMessage').textContent='Signed in successfully.';accountStatus('Synced to cloud · '+(user.email||'Google account'));
+   cloudReady=true;render();document.body.classList.add('authenticated');hideAppLoading();$('loginMessage').textContent='Signed in successfully.';accountStatus('Synced to cloud · '+(user.email||'Google account'));
   }
- }catch(e){console.error('Firebase load failed',e);accountStatus('Cloud connection failed · check Firebase setup');$('loginMessage').textContent='Google sign-in succeeded, but your cloud data could not be opened. Check Firestore database and security rules. Details: '+(e.code||'')+' '+e.message;$('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Try again'}
+ }catch(e){hideAppLoading();console.error('Firebase load failed',e);accountStatus('Cloud connection failed · check Firebase setup');$('loginMessage').textContent='Google sign-in succeeded, but your cloud data could not be opened. Check Firestore database and security rules. Details: '+(e.code||'')+' '+e.message;$('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Try again'}
 });
 $('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('yearReport').onchange=report;render();
 })();
 </script>
+<section id="appLoadingScreen" aria-live="polite" aria-label="Loading ZA Money Tracker" hidden>
+ <div class="loading-card">
+  <div class="loading-logo-wrap"><img src="za-money-tracker-logo.jpg" alt="ZA Money Tracker panda logo"></div>
+  <div class="loading-kicker">ZA MONEY TRACKER</div>
+  <h2>Getting things ready</h2>
+  <p id="loadingStatus">Securely syncing your finance data…</p>
+  <div class="loading-meter" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100">
+   <div class="loading-meter-fill"></div>
+  </div>
+  <div class="loading-caption"><span class="loading-dot"></span> SECURE CLOUD SYNC</div>
+ </div>
+</section>
 </body></html>
