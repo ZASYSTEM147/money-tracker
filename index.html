@@ -436,7 +436,7 @@ img,svg,canvas{max-width:100%}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -450,6 +450,8 @@ const firebaseConfig = {
 };
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
+// Keep Google login active when the browser returns to the app.
+await setPersistence(auth, browserLocalPersistence);
 const db = getFirestore(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
 
@@ -554,12 +556,8 @@ const doGoogleSignIn=async()=>{
  button.disabled=true;button.textContent='Connecting to Google…';$('loginMessage').textContent='Securely connecting to Google…';
  try{
   googleProvider.setCustomParameters({prompt:'select_account'});
-  const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||window.matchMedia('(max-width:700px)').matches;
-  if(isMobile){
-   $('loginMessage').textContent='Redirecting to Google sign-in…';
-   await signInWithRedirect(auth,googleProvider);
-   return;
-  }
+  // Popup flow works with GitHub Pages' Firebase authDomain more reliably on mobile.
+  // If the browser blocks popups, fall back to the redirect flow.
   await signInWithPopup(auth,googleProvider);
  }catch(e){
   console.error('Google sign-in failed',e);
@@ -579,7 +577,7 @@ onAuthStateChanged(auth,async user=>{
  $('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Continue with Google';
  $('googleSignIn').classList.toggle('hidden',!!user);
  $('googleSignOut').classList.toggle('hidden',!user);
- if(!user){accountStatus('Cloud sync: signed out');$('loginMessage').textContent=redirectError?authErrorText(redirectError):'Sign in with your Google account to access your private tracker.';redirectError=null;return}
+ if(!user){accountStatus('Cloud sync: signed out');$('loginMessage').textContent=redirectError?authErrorText(redirectError):'Google sign-in has not completed. Tap Continue with Google again. If this repeats, check Firebase authorised domains.';redirectError=null;return}
  $('loginMessage').textContent='Loading your secure finance data…';
  accountStatus('Connecting cloud data…');
  try{
@@ -600,7 +598,7 @@ onAuthStateChanged(auth,async user=>{
    }
    cloudReady=true;render();document.body.classList.add('authenticated');$('loginMessage').textContent='Signed in successfully.';accountStatus('Synced to cloud · '+(user.email||'Google account'));
   }
- }catch(e){console.error('Firebase load failed',e);accountStatus('Cloud connection failed · check Firebase setup');$('loginMessage').textContent='Could not load your account data. Check that Firestore is enabled and security rules are published. '+e.message;$('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Try again'}
+ }catch(e){console.error('Firebase load failed',e);accountStatus('Cloud connection failed · check Firebase setup');$('loginMessage').textContent='Google sign-in succeeded, but your cloud data could not be opened. Check Firestore database and security rules. Details: '+(e.code||'')+' '+e.message;$('loginGoogleButton').disabled=false;$('loginGoogleButton').innerHTML='<span class="google-g">G</span> Try again'}
 });
 $('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('yearReport').onchange=report;render();
 })();
