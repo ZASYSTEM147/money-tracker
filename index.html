@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b3f91">
 <meta name="description" content="ZA Money Tracker — private personal finance tracking for income, expenses, debts and subscriptions.">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png">
-<link rel="apple-touch-icon" href="za-icon-192.png">
+<link rel="manifest" href="manifest.webmanifest?v=6">
+<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=6">
+<link rel="apple-touch-icon" href="za-icon-192.png?v=6">
 
 <title>ZA Money Tracker</title>
 <style>
@@ -334,25 +334,50 @@ img,svg,canvas{max-width:100%}
 @media(max-width:480px){.loading-card{padding:27px 21px 24px;border-radius:24px}.loading-logo-wrap{width:138px;height:108px}.loading-card h2{font-size:22px}}
 @media(prefers-reduced-motion:reduce){.loading-logo-wrap,.loading-meter-fill,.loading-dot{animation:none}.loading-meter-fill{width:65%;transform:none}}
 
+
+/* Desktop sign-in alignment: balanced brand and action columns */
+@media(min-width:641px){
+ #loginGate{padding:40px 28px}
+ .login-panel{width:min(100%,980px);min-height:570px;padding:54px 58px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr);align-items:center;gap:64px;text-align:left;border-radius:32px}
+ .login-brand-column{max-width:440px;margin:auto 0}
+ .login-logo{width:min(100%,310px);margin:0 0 25px;aspect-ratio:433/288}
+ .login-panel h1{font-size:clamp(34px,4vw,48px);margin:16px 0 10px}
+ .login-lead{font-size:17px}
+ .login-features{margin:30px 0 0;padding:20px 22px;gap:15px;font-size:14px}
+ .login-action-column{width:100%;max-width:390px;margin:auto;padding:32px;border:1px solid rgba(190,215,255,.2);border-radius:24px;background:rgba(3,17,45,.22);text-align:center}
+ .login-action-title{font-size:25px;font-weight:850;letter-spacing:-.035em;color:#fff}
+ .login-action-copy{margin:8px 0 26px;color:#c8e8f7;font-size:14px;line-height:1.6}
+ #loginMessage{min-height:48px}
+ .login-help-note{max-width:100%}
+ .login-foot{text-align:center}
+}
+@media(max-width:640px){.login-panel{display:block;text-align:center}.login-action-title,.login-action-copy{display:none}}
 </style>
 </head>
 <body>
 <section id="loginGate" aria-label="Sign in to ZA Money Tracker">
  <div class="login-panel">
-  <img class="login-logo" src="za-money-tracker-logo.jpg" alt="ZA Money Tracker panda logo">
-  <div class="login-eyebrow">PERSONAL FINANCE · PRIVATE CLOUD</div>
-  <h1>ZA Money Tracker</h1>
-  <p class="login-lead">Your money, organised in one place.</p>
-  <div class="login-features">
-   <div><span>✓</span> Track income, expenses and budgets</div>
-   <div><span>✓</span> Manage debts and repayments</div>
-   <div><span>✓</span> Sync your records across devices</div>
+  <div class="login-brand-column">
+   <img class="login-logo" src="za-money-tracker-logo.jpg?v=6" alt="ZA Money Tracker panda logo">
+   <div class="login-eyebrow">PERSONAL FINANCE · PRIVATE CLOUD</div>
+   <h1>ZA Money Tracker</h1>
+   <p class="login-lead">Your money, organised in one place.</p>
+   <div class="login-features">
+    <div><span>✓</span> Track income, expenses and budgets</div>
+    <div><span>✓</span> Manage debts and repayments</div>
+    <div><span>✓</span> Sync your records across devices</div>
+   </div>
   </div>
-  <button id="loginGoogleButton" type="button"><span class="google-g">G</span> Continue with Google</button>
-  <button id="installAppButton" type="button" hidden>＋ Install ZA Money Tracker</button>
-  <div id="loginMessage" role="status">Sign in with your Google account to access your private tracker.</div><div class="login-help-note">If Google sign-in returns here, check that this website's address is added to Firebase Authentication → Settings → Authorised domains, and that Google is enabled as a sign-in provider.</div>
-  <div class="login-foot">On Android, install from Chrome or Edge using the browser menu → Install app / Add to Home screen.</div>
-  <div class="login-foot">Your financial records are stored in your own account.</div>
+  <div class="login-action-column">
+   <div class="login-action-title">Welcome back</div>
+   <p class="login-action-copy">Sign in securely with your Google account to open your personal finance dashboard.</p>
+   <button id="loginGoogleButton" type="button"><span class="google-g">G</span> Continue with Google</button>
+   <button id="installAppButton" type="button" hidden>＋ Install ZA Money Tracker</button>
+   <div id="loginMessage" role="status">Ready when you are. Sign in to continue.</div>
+   <div class="login-help-note">If sign-in fails, confirm this website hostname is listed in Firebase Authentication → Settings → Authorized domains, and that Google is enabled as a provider.</div>
+   <div class="login-foot">On Android, use the Chrome or Edge menu → Install app / Add to Home screen.</div>
+   <div class="login-foot">Your financial records are stored securely in your own account.</div>
+  </div>
  </div>
 </section>
 
@@ -449,7 +474,7 @@ img,svg,canvas{max-width:100%}
   });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Service worker registration failed:', err));
+      navigator.serviceWorker.register('./sw.js?v=6',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
     });
   }
 })();
@@ -580,16 +605,14 @@ const doGoogleSignIn=async()=>{
  button.disabled=true;button.textContent='Connecting to Google…';$('loginMessage').textContent='Securely connecting to Google…';
  try{
   googleProvider.setCustomParameters({prompt:'select_account'});
-  const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  if(isMobile){
-   $('loginMessage').textContent='Opening Google sign-in… You will return here after choosing your account.';
-   await signInWithRedirect(auth,googleProvider);
-   return;
-  }
+  $('loginMessage').textContent='Opening secure Google sign-in…';
   await signInWithPopup(auth,googleProvider);
  }catch(e){
   console.error('Google sign-in failed',e);
-  $('loginMessage').textContent=authErrorText(e);
+  let message=authErrorText(e);
+  if(e?.code==='auth/popup-blocked') message='Your browser blocked the Google sign-in window. Allow pop-ups for this website, then try again.';
+  if(e?.code==='auth/popup-closed-by-user') message='Google sign-in was closed before it finished. Please try again.';
+  $('loginMessage').textContent=message;
   button.disabled=false;
   button.innerHTML='<span class="google-g">G</span> Continue with Google';
  }

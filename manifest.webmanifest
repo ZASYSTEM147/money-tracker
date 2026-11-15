@@ -1,26 +1,22 @@
 {
-  "id": "./",
   "name": "ZA Money Tracker",
-  "short_name": "ZA Tracker",
-  "description": "Private personal finance tracker",
-  "start_url": "./index.html",
+  "short_name": "ZA Money",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0b3f91",
+  "background_color": "#0b347a",
   "theme_color": "#0b3f91",
+  "description": "Private personal finance tracker",
   "icons": [
     {
       "src": "za-icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "za-icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
