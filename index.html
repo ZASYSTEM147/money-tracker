@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b3f91">
 <meta name="description" content="ZA Money Tracker — private personal finance tracking for income, expenses, debts and subscriptions.">
-<link rel="manifest" href="manifest.webmanifest?v=6">
-<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=6">
-<link rel="apple-touch-icon" href="za-icon-192.png?v=6">
+<link rel="manifest" href="manifest.webmanifest?v=7">
+<link rel="icon" type="image/png" sizes="192x192" href="za-icon-192.png?v=7">
+<link rel="apple-touch-icon" href="za-icon-192.png?v=7">
 
 <title>ZA Money Tracker</title>
 <style>
@@ -474,7 +474,7 @@ img,svg,canvas{max-width:100%}
   });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=6',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
+      navigator.serviceWorker.register('./sw.js?v=7',{updateViaCache:'none'}).then(reg=>reg.update()).catch(err => console.warn('Service worker registration failed:', err));
     });
   }
 })();
@@ -510,7 +510,7 @@ try{let s=localStorage.getItem('moneyManagerDataV1');if(s)data={...data,...JSON.
 let cloudUser=null,cloudReady=false,cloudWriteQueue=Promise.resolve();
 const accountStatus=msg=>{let el=$('accountStatus');if(el)el.textContent=msg};
 const showAppLoading=(message='Securely syncing your finance data…')=>{const el=$('appLoadingScreen');if(el){$('loadingStatus').textContent=message;el.hidden=false}};
-const hideAppLoading=()=>{const el=$('appLoadingScreen');if(el)el.hidden=true};
+const hideAppLoading=()=>{if(window.__zaLoaderFallback)clearTimeout(window.__zaLoaderFallback);const el=$('appLoadingScreen');if(el)el.hidden=true};
 
 const save=()=>{
  try{localStorage.setItem('moneyManagerDataV1',JSON.stringify(data))}catch(e){alert('Could not save locally. Please export a backup.')}
@@ -659,12 +659,28 @@ $('reportMonth').value=today().slice(0,7);$('reportMonth').onchange=report;$('ye
  <div class="loading-card">
   <div class="loading-logo-wrap"><img src="za-money-tracker-logo.jpg" alt="ZA Money Tracker panda logo"></div>
   <div class="loading-kicker">ZA MONEY TRACKER</div>
-  <h2>Getting things ready</h2>
+  <h2>Loading your tracker</h2>
   <p id="loadingStatus">Securely syncing your finance data…</p>
   <div class="loading-meter" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100">
    <div class="loading-meter-fill"></div>
   </div>
-  <div class="loading-caption"><span class="loading-dot"></span> SECURE CLOUD SYNC</div>
+  <div class="loading-caption"><span class="loading-dot"></span> LOADING · PLEASE WAIT</div>
  </div>
 </section>
+<script>
+/* Show the branded meter immediately on every page load and refresh.
+   Firebase auth handling hides it once the saved session check completes. */
+(function(){
+  var loader=document.getElementById('appLoadingScreen');
+  if(!loader) return;
+  loader.hidden=false;
+  var status=document.getElementById('loadingStatus');
+  if(status) status.textContent='Refreshing your secure money tracker…';
+  window.__zaLoaderFallback=setTimeout(function(){
+    if(loader && !document.body.classList.contains('authenticated')){
+      loader.hidden=true;
+    }
+  },20000);
+})();
+</script>
 </body></html>

@@ -1,7 +1,11 @@
-# ZA Money Tracker — updated release
+# ZA Money Tracker — refresh loading meter v7
 
 Upload every file in this package to the root of the `money-tracker` GitHub repository, replacing files with the same names.
 
-Includes an animated panda-logo loading screen during Firebase session checks and cloud-data loading, a balanced two-column desktop login layout, a stacked phone layout, Google popup sign-in on all devices, and service-worker cache v6 with network-first navigation.
+## This update
+- The panda-logo loading meter now appears immediately on every page load and browser refresh, before Firebase session restoration starts.
+- The meter stays visible while Firebase checks the saved Google session and loads private cloud data, then closes when the app is ready.
+- A safety timeout prevents a permanently stuck loading overlay if the authentication module cannot respond.
+- Service worker cache upgraded to v7 so installed PWAs can fetch the new refresh screen.
 
-After committing, wait for GitHub Pages deployment. Open the website online and refresh. If an installed app still shows the old screen, fully close it and reopen the website once while connected to the internet.
+After committing, wait for GitHub Pages deployment. Open the site online and refresh once. If an installed app still shows an old screen, fully close it and reopen it while connected to the internet.
